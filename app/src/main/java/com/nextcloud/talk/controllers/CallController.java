@@ -921,6 +921,18 @@ public class CallController extends BaseController {
                 //start timer
                 startTimer(allocatedSpeakTime);
                 speakTimerStarted = true;
+                if (isConnectionEstablished() && magicPeerConnectionWrapperList != null) {
+                    if (!hasMCU) {
+                        for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                            magicPeerConnectionWrapper.startRequest(magicPeerConnectionWrapper.getSessionId(),
+                                                            speakTimerStarted);
+                        }
+                    } else {
+                        for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                            magicPeerConnectionWrapper.startRequest(magicPeerConnectionWrapper.getSessionId(),speakTimerStarted);
+                        }
+                    }
+                }
             }
 
         }
@@ -1629,6 +1641,9 @@ public class CallController extends BaseController {
                     case "approveRequest":
                         processRequestApproved(ncSignalingMessage);
                         break;
+                    case "pauseRequest":
+                        pauseTimer(ncSignalingMessage);
+                        break;
                     default:
                         break;
                 }
@@ -1686,8 +1701,36 @@ public class CallController extends BaseController {
              }
              public void onFinish() {
                  timeLeftButton.setText("Done!");
+                 requestToSpeakButton.setText(R.string.kikao_request_to_speak);
+                 requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
+                     "#" + Integer.toHexString (getResources().getColor(R.color.colorPrimary)))));
+                 hideShowControls(false);
+                 if (isConnectionEstablished() && magicPeerConnectionWrapperList != null) {
+                     if (!hasMCU) {
+                         for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                             magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId(),false);
+                         }
+                     } else {
+                         for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                             magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId(),false);
+                         }
+                     }
+                 }
              }
              }.start();
+    }
+
+    private void pauseTimer(NCSignalingMessage ncSignalingMessage){
+        if (ncSignalingMessage.getPayload().getState() !=null && ncSignalingMessage.getPayload().getState()) {
+            if (countDownTimer!=null) {
+                countDownTimer.pause();
+            }
+        }else{
+            if (countDownTimer!=null) {
+                countDownTimer.resume();
+            }
+
+       }
     }
 
     private void hangup(boolean shutDownView) {

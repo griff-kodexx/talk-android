@@ -183,6 +183,11 @@ public class MagicPeerConnectionWrapper {
         EventBus.getDefault().post(new RaiseHandEvent("raiseHand", sessionId,videoStreamType,raiseHand ));
     }
 
+    public void startRequest(String sessionId, Boolean startRequest){
+        EventBus.getDefault().post(new RaiseHandEvent("startRequest", sessionId,videoStreamType,startRequest ));
+    }
+
+
     public void sendNickChannelData(DataChannelMessageNick dataChannelMessage) {
         ByteBuffer buffer;
         if (magicDataChannel != null) {
