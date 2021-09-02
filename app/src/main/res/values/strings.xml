@@ -457,4 +457,7 @@
     <string name="filename_progress">%1$s (%2$d)</string>
     <string name="nc_dialog_invalid_password">Invalid password</string>
     <string name="nc_dialog_reauth_or_delete">Do you want to reauthorize or delete this account?</string>
+    <string name="kikao_request_to_speak">Request To Speak</string>
+    <string name="kikao_request_to_intervene">Request To Intervene</string>
+    <string name="kikao_count_down_placeholder">Count Down</string>
 </resources>

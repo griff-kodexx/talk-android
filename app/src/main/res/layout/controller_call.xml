@@ -132,14 +132,78 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/callControlsLinearLayout"
+        android:id="@+id/requestsAndControlsLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/call_controls_height_double"
+        android:layout_alignBottom="@id/linearWrapperLayout"
+        android:animateLayoutChanges="true"
+        android:background="@android:color/transparent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+         <LinearLayout
+        android:id="@+id/requestsLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="@dimen/call_controls_height"
         android:layout_alignBottom="@id/linearWrapperLayout"
         android:animateLayoutChanges="true"
         android:background="@android:color/transparent"
-        android:gravity="center"
         android:orientation="horizontal">
+
+             <com.google.android.material.button.MaterialButton
+                 android:id="@+id/requestToSpeakButton"
+                 android:background="@drawable/button_bg"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_gravity="start|center"
+                 android:layout_marginStart="5dp"
+                 android:layout_marginEnd="5dp"
+                 android:ellipsize="marquee"
+                 android:text="@string/kikao_request_to_speak"
+                 android:textColor="@color/white"
+                 android:layout_weight="1" />
+
+             <com.google.android.material.button.MaterialButton
+                 android:id="@+id/countDown"
+                 android:background="@drawable/button_bg"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_gravity="center"
+                 android:layout_marginStart="5dp"
+                 android:layout_marginEnd="5dp"
+                 android:ellipsize="marquee"
+                 android:textAlignment="center"
+                 android:text="@string/kikao_count_down_placeholder"
+                 android:textColor="@color/white"
+                 android:layout_weight="1" />
+
+
+             <com.google.android.material.button.MaterialButton
+                 android:id="@+id/requestToInterveneButton"
+                 android:background="@drawable/button_bg"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_gravity="start|center"
+                 android:layout_marginStart="5dp"
+                 android:layout_marginEnd="5dp"
+                 android:ellipsize="marquee"
+                 android:text="@string/kikao_request_to_intervene"
+                 android:textColor="@color/white"
+                 android:layout_weight="1" />
+
+
+         </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/callControlsLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/call_controls_height"
+            android:layout_alignBottom="@id/linearWrapperLayout"
+            android:animateLayoutChanges="true"
+            android:background="@android:color/transparent"
+            android:gravity="center"
+            android:orientation="horizontal">
 
         <com.facebook.drawee.view.SimpleDraweeView
             android:id="@+id/callControlToggleChat"
@@ -194,5 +258,8 @@
             app:placeholderImage="@drawable/ic_call_end_white_24px"
             app:roundAsCircle="true" />
     </LinearLayout>
+
+    </LinearLayout>
+
 
 </RelativeLayout>
