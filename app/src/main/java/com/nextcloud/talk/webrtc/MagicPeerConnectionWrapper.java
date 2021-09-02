@@ -179,8 +179,8 @@ public class MagicPeerConnectionWrapper {
         }
     }
 
-    public void raiseHand(String sessionId){
-        EventBus.getDefault().post(new RaiseHandEvent("raiseHand", sessionId,videoStreamType ));
+    public void raiseHand(String sessionId, Boolean raiseHand){
+        EventBus.getDefault().post(new RaiseHandEvent("raiseHand", sessionId,videoStreamType,raiseHand ));
     }
 
     public void sendNickChannelData(DataChannelMessageNick dataChannelMessage) {

@@ -24,6 +24,7 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.media.AudioAttributes;
@@ -41,6 +42,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -51,6 +54,7 @@ import android.widget.TextView;
 
 import com.bluelinelabs.logansquare.LoganSquare;
 import com.facebook.drawee.view.SimpleDraweeView;
+import com.google.android.material.button.MaterialButton;
 import com.nextcloud.talk.R;
 import com.nextcloud.talk.activities.MagicCallActivity;
 import com.nextcloud.talk.adapters.ParticipantDisplayItem;
@@ -219,6 +223,9 @@ public class CallController extends BaseController {
 
     @BindView(R.id.callStateProgressBar)
     ProgressBar progressBar;
+
+    @BindView(R.id.requestToSpeakButton)
+    MaterialButton requestToSpeakButton;
 
     @Inject
     NcApi ncApi;
@@ -915,14 +922,18 @@ public class CallController extends BaseController {
     public void onRequestToSpeakClick(){
         Log.d(TAG, "Request to speak clicked");
 
+        String currentText = requestToSpeakButton.getText().toString();
+        Boolean raiseHand = !currentText.equalsIgnoreCase(getResources().getString(R.string.action_cancel));
+
+
         if (isConnectionEstablished() && magicPeerConnectionWrapperList != null) {
             if (!hasMCU) {
                 for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
-                    magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId());
+                    magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId(),raiseHand);
                 }
             } else {
                 for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
-                        magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId());
+                        magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId(),raiseHand);
                 }
             }
         }
@@ -2142,7 +2153,7 @@ public class CallController extends BaseController {
         ncSignalingMessage.setType(raiseHandEvent.getType());
         NCMessagePayload ncMessagePayload = new NCMessagePayload();
         ncMessagePayload.setType(raiseHandEvent.getType());
-        ncMessagePayload.setState(true);
+        ncMessagePayload.setState(raiseHandEvent.getRaiseHand());
         Long tsLong = System.currentTimeMillis()/1000;
         String ts = tsLong.toString();
         ncMessagePayload.setTimestamp(ts);
@@ -2182,6 +2193,26 @@ public class CallController extends BaseController {
 
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull SignalingOverall signalingOverall) {
+                        getActivity().runOnUiThread(()->{
+                            //todo move this to after confirmation of the request from the server
+                            if (raiseHandEvent.getRaiseHand()) {
+                                requestToSpeakButton.setText(R.string.action_cancel);
+                                requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
+                                    "#" + Integer.toHexString (getResources().getColor(R.color.nc_darkRed)))));
+                            }else{
+                                requestToSpeakButton.setText(R.string.kikao_request_to_speak);
+                                requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
+                                    "#" + Integer.toHexString (getResources().getColor(R.color.colorPrimary)))));
+                            }
+/*
+                            // Next, animate its visibility with the set color
+                            Animation anim = new AlphaAnimation(0.0f, 1.0f);
+                            anim.setDuration(10000); //You can manage the blinking time with this parameter
+                            anim.setStartOffset(20);
+                            anim.setRepeatMode(Animation.REVERSE);
+                            anim.setRepeatCount(Animation.INFINITE);
+                            requestToSpeakButton.startAnimation(anim);*/
+                            });
                         receivedSignalingMessages(signalingOverall.getOcs().getSignalings());
                     }
 
