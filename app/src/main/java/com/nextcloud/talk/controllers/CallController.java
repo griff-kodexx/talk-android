@@ -1767,12 +1767,6 @@ public class CallController extends BaseController {
                 }else if (millisUntilFinished/1000 < 60) {
                     timeLeftButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
                         "#" + Integer.toHexString (getResources().getColor(R.color.kikao_warning)))));
-                    Animation anim = new AlphaAnimation(0.0f, 1.0f);
-                    anim.setDuration(5000); //You can manage the blinking time with this parameter
-                    anim.setStartOffset(20);
-                    anim.setRepeatMode(Animation.REVERSE);
-                    anim.setRepeatCount(Animation.INFINITE);
-                    timeLeftButton.startAnimation(anim);
                 }
 
 

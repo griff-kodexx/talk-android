@@ -89,7 +89,7 @@
     <color name="nc_voice_message_outgoing_controls">#606060</color>
 
     <!--Timer Colors-->
-    <color name="kikao_warning">#FFA500</color>
+    <color name="kikao_warning">#FFBF00</color>
     <color name="kikao_danger">#ff0000</color>
 
 
