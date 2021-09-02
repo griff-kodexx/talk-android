@@ -513,14 +513,8 @@ public class CallController extends BaseController {
             pipVideoView.setOnTouchListener(new SelfVideoTouchListener());
         }
 
-
         //hide controls before permission to speak is granted
-        microphoneControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_mic_off_white_24px);
-        cameraControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_videocam_off_white_24px);
-        microphoneControlButton.setVisibility(View.GONE);
-        cameraControlButton.setVisibility(View.GONE);
-        cameraSwitchButton.setVisibility(View.GONE);
-        pipVideoView.setVisibility(View.GONE);
+        hideShowControls(false);
 
         gridView.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent me) {
@@ -533,6 +527,46 @@ public class CallController extends BaseController {
         });
 
         initGridAdapter();
+    }
+
+    private void hideShowControls(Boolean show){
+        if (show){
+            microphoneControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_mic_off_white_24px);
+            cameraControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_videocam_off_white_24px);
+            if (isVoiceOnlyCall) {
+                callControlEnableSpeaker.setVisibility(View.VISIBLE);
+                microphoneControlButton.setVisibility(View.VISIBLE);
+                cameraSwitchButton.setVisibility(View.GONE);
+                cameraControlButton.setVisibility(View.GONE);
+                pipVideoView.setVisibility(View.GONE);
+            } else {
+                callControlEnableSpeaker.setVisibility(View.GONE);
+                cameraControlButton.setVisibility(View.VISIBLE);
+                cameraSwitchButton.setVisibility(View.VISIBLE);
+                pipVideoView.setVisibility(View.VISIBLE);
+                if (cameraEnumerator.getDeviceNames().length < 2) {
+                    cameraSwitchButton.setVisibility(View.GONE);
+                }
+            }
+
+        }else {
+            microphoneControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_mic_off_white_24px);
+            cameraControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_videocam_off_white_24px);
+            microphoneControlButton.setVisibility(View.GONE);
+            cameraControlButton.setVisibility(View.GONE);
+            cameraSwitchButton.setVisibility(View.GONE);
+            pipVideoView.setVisibility(View.GONE);
+
+            //mute mic and camera
+            audioOn = false;
+            videoOn = false;
+
+            //disable audio
+            toggleMedia(audioOn, false);
+            //disable video
+            toggleMedia(videoOn, true);
+
+        }
     }
 
     private void initGridAdapter() {
@@ -1262,16 +1296,8 @@ public class CallController extends BaseController {
     }
 
     private void joinRoomAndCall() {
-        //mute mic and camera
-        audioOn = false;
-        videoOn = false;
 
-        //disable audio
-        toggleMedia(audioOn, false);
-        //disable video
-        toggleMedia(videoOn, true);
-
-        //proceed with setting up call
+        hideShowControls(false);
 
         callSession = ApplicationWideCurrentRoomHolder.getInstance().getSession();
 
@@ -1564,6 +1590,9 @@ public class CallController extends BaseController {
                     case "endOfCandidates":
                         magicPeerConnectionWrapper.drainIceCandidates();
                         break;
+                    case "approveRequest":
+                        processRequestApproved(ncSignalingMessage);
+                        break;
                     default:
                         break;
                 }
@@ -1571,6 +1600,10 @@ public class CallController extends BaseController {
         } else {
             Log.e(TAG, "unexpected RoomType while processing NCSignalingMessage");
         }
+    }
+
+    private void processRequestApproved(NCSignalingMessage ncSignalingMessage){
+        hideShowControls(ncSignalingMessage.getPayload().getState());
     }
 
     private void hangup(boolean shutDownView) {
@@ -2194,7 +2227,8 @@ public class CallController extends BaseController {
                     @Override
                     public void onNext(@io.reactivex.annotations.NonNull SignalingOverall signalingOverall) {
                         getActivity().runOnUiThread(()->{
-                            //todo move this to after confirmation of the request from the server
+                            //todo do this to after confirmation of the request from the server. Should show the
+                            // loading icon or error otherwise
                             if (raiseHandEvent.getRaiseHand()) {
                                 requestToSpeakButton.setText(R.string.action_cancel);
                                 requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
@@ -2203,6 +2237,7 @@ public class CallController extends BaseController {
                                 requestToSpeakButton.setText(R.string.kikao_request_to_speak);
                                 requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
                                     "#" + Integer.toHexString (getResources().getColor(R.color.colorPrimary)))));
+                                hideShowControls(false);
                             }
 /*
                             // Next, animate its visibility with the set color
