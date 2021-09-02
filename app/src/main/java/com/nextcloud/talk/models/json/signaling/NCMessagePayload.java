@@ -49,6 +49,9 @@ public class NCMessagePayload {
     @JsonField(name = "timestamp")
     String timestamp;
 
+    @JsonField(name = "duration")
+    Integer duration;
+
     public String getType() {
         return this.type;
     }
@@ -103,6 +106,14 @@ public class NCMessagePayload {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public Integer getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Integer duration) {
+        this.duration = duration;
     }
 
     public boolean equals(final Object o) {

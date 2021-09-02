@@ -97,6 +97,7 @@ import com.nextcloud.talk.utils.database.user.UserUtils;
 import com.nextcloud.talk.utils.power.PowerManagerUtils;
 import com.nextcloud.talk.utils.preferences.AppPreferences;
 import com.nextcloud.talk.utils.singletons.ApplicationWideCurrentRoomHolder;
+import com.nextcloud.talk.utils.CountDownTimer;
 import com.nextcloud.talk.webrtc.MagicAudioManager;
 import com.nextcloud.talk.webrtc.MagicPeerConnectionWrapper;
 import com.nextcloud.talk.webrtc.MagicWebRTCUtils;
@@ -227,6 +228,9 @@ public class CallController extends BaseController {
     @BindView(R.id.requestToSpeakButton)
     MaterialButton requestToSpeakButton;
 
+    @BindView(R.id.timeLeftButton)
+    MaterialButton timeLeftButton;
+
     @Inject
     NcApi ncApi;
     @Inject
@@ -297,6 +301,12 @@ public class CallController extends BaseController {
 
     private Map<String, ParticipantDisplayItem> participantDisplayItems;
     private ParticipantsAdapter participantsAdapter;
+
+    private Integer allocatedSpeakTime = 0;
+
+    private Boolean speakTimerStarted = false;
+
+    private CountDownTimer countDownTimer;
 
     @Parcel
     public enum CallStatus {
@@ -541,6 +551,7 @@ public class CallController extends BaseController {
                 pipVideoView.setVisibility(View.GONE);
             } else {
                 callControlEnableSpeaker.setVisibility(View.GONE);
+                microphoneControlButton.setVisibility(View.VISIBLE);
                 cameraControlButton.setVisibility(View.VISIBLE);
                 cameraSwitchButton.setVisibility(View.VISIBLE);
                 pipVideoView.setVisibility(View.VISIBLE);
@@ -549,6 +560,14 @@ public class CallController extends BaseController {
                 }
             }
 
+            String allocatedSpeakTimeStr = String.format("%02d:%02d",
+                                                         TimeUnit.MILLISECONDS.toMinutes(allocatedSpeakTime*60000),
+                                                         TimeUnit.MILLISECONDS.toSeconds(allocatedSpeakTime*60000) -
+                                                             TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(allocatedSpeakTime*60000))
+                                                        );
+            timeLeftButton.setVisibility(View.VISIBLE);
+            timeLeftButton.setText(allocatedSpeakTimeStr);
+
         }else {
             microphoneControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_mic_off_white_24px);
             cameraControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_videocam_off_white_24px);
@@ -556,6 +575,14 @@ public class CallController extends BaseController {
             cameraControlButton.setVisibility(View.GONE);
             cameraSwitchButton.setVisibility(View.GONE);
             pipVideoView.setVisibility(View.GONE);
+
+            //cancel timer
+            if(countDownTimer!=null){
+                countDownTimer.cancel();
+            }
+
+            timeLeftButton.clearAnimation();
+            timeLeftButton.setVisibility(View.GONE);
 
             //mute mic and camera
             audioOn = false;
@@ -887,6 +914,15 @@ public class CallController extends BaseController {
             } else {
                 onRequestPermissionsResult(100, PERMISSIONS_MICROPHONE, new int[]{1});
             }
+        }
+
+        if (allocatedSpeakTime >0 && requestToSpeakButton.getText().toString().equalsIgnoreCase(getResources().getString(R.string.action_cancel))){
+            if (!speakTimerStarted){
+                //start timer
+                startTimer(allocatedSpeakTime);
+                speakTimerStarted = true;
+            }
+
         }
     }
 
@@ -1603,7 +1639,55 @@ public class CallController extends BaseController {
     }
 
     private void processRequestApproved(NCSignalingMessage ncSignalingMessage){
+        if (ncSignalingMessage.getPayload().getState() !=null && ncSignalingMessage.getPayload().getState() && ncSignalingMessage.getPayload().getDuration() !=null && ncSignalingMessage.getPayload().getDuration() > 0){
+            //set allocated duration
+            allocatedSpeakTime = ncSignalingMessage.getPayload().getDuration();
+        }else {
+            //set allocated duration
+            allocatedSpeakTime = 0;
+        }
+        speakTimerStarted = false;
+
         hideShowControls(ncSignalingMessage.getPayload().getState());
+
+    }
+
+    private void startTimer(Integer durationInMinutes){
+        countDownTimer =  new CountDownTimer(durationInMinutes*60000, 1000) {
+             public void onTick(long millisUntilFinished) {
+                 String allocatedSpeakTimeStr = String.format("%02d:%02d",
+                                                              TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished),
+                                                              TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) -
+                                                                  TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished))
+                                                             );
+                timeLeftButton.setText(allocatedSpeakTimeStr);
+
+                if (millisUntilFinished/1000 < 30) {
+                    timeLeftButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
+                        "#" + Integer.toHexString (getResources().getColor(R.color.kikao_danger)))));
+                    Animation anim = new AlphaAnimation(0.0f, 1.0f);
+                    anim.setDuration(500); //You can manage the blinking time with this parameter
+                    anim.setStartOffset(20);
+                    anim.setRepeatMode(Animation.REVERSE);
+                    anim.setRepeatCount(Animation.INFINITE);
+                    timeLeftButton.startAnimation(anim);
+                }else if (millisUntilFinished/1000 < 60) {
+                    timeLeftButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
+                        "#" + Integer.toHexString (getResources().getColor(R.color.kikao_warning)))));
+                    Animation anim = new AlphaAnimation(0.0f, 1.0f);
+                    anim.setDuration(5000); //You can manage the blinking time with this parameter
+                    anim.setStartOffset(20);
+                    anim.setRepeatMode(Animation.REVERSE);
+                    anim.setRepeatCount(Animation.INFINITE);
+                    timeLeftButton.startAnimation(anim);
+                }
+
+
+             }
+             public void onFinish() {
+                 timeLeftButton.setText("Done!");
+             }
+             }.start();
     }
 
     private void hangup(boolean shutDownView) {
@@ -2239,15 +2323,7 @@ public class CallController extends BaseController {
                                     "#" + Integer.toHexString (getResources().getColor(R.color.colorPrimary)))));
                                 hideShowControls(false);
                             }
-/*
-                            // Next, animate its visibility with the set color
-                            Animation anim = new AlphaAnimation(0.0f, 1.0f);
-                            anim.setDuration(10000); //You can manage the blinking time with this parameter
-                            anim.setStartOffset(20);
-                            anim.setRepeatMode(Animation.REVERSE);
-                            anim.setRepeatCount(Animation.INFINITE);
-                            requestToSpeakButton.startAnimation(anim);*/
-                            });
+                        });
                         receivedSignalingMessages(signalingOverall.getOcs().getSignalings());
                     }
 
