@@ -228,6 +228,9 @@ public class CallController extends BaseController {
     @BindView(R.id.requestToSpeakButton)
     MaterialButton requestToSpeakButton;
 
+    @BindView(R.id.requestToInterveneButton)
+    MaterialButton requestToInterveneButton;
+
     @BindView(R.id.timeLeftButton)
     MaterialButton timeLeftButton;
 
@@ -936,6 +939,27 @@ public class CallController extends BaseController {
             }
 
         }
+
+        if (allocatedSpeakTime >0 && requestToInterveneButton.getText().toString().equalsIgnoreCase(getResources().getString(R.string.action_cancel))){
+            if (!speakTimerStarted){
+                //start timer
+                startTimer(allocatedSpeakTime);
+                speakTimerStarted = true;
+                if (isConnectionEstablished() && magicPeerConnectionWrapperList != null) {
+                    if (!hasMCU) {
+                        for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                            magicPeerConnectionWrapper.startIntervene(magicPeerConnectionWrapper.getSessionId(),
+                                                                    speakTimerStarted);
+                        }
+                    } else {
+                        for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                            magicPeerConnectionWrapper.startIntervene(magicPeerConnectionWrapper.getSessionId(),speakTimerStarted);
+                        }
+                    }
+                }
+            }
+
+        }
     }
 
     @OnClick(R.id.callControlToggleChat)
@@ -1006,6 +1030,12 @@ public class CallController extends BaseController {
 
         String currentText = requestToSpeakButton.getText().toString();
         Boolean raiseHand = !currentText.equalsIgnoreCase(getResources().getString(R.string.action_cancel));
+        if (raiseHand){
+            //disable request to intervene
+            requestToInterveneButton.setEnabled(false);
+        }else{
+            requestToInterveneButton.setEnabled(true);
+        }
 
 
         if (isConnectionEstablished() && magicPeerConnectionWrapperList != null) {
@@ -1020,6 +1050,32 @@ public class CallController extends BaseController {
             }
         }
     }
+
+    @OnClick({R.id.requestToInterveneButton})
+    public void onRequestToInterveneClick(){
+        Log.d(TAG, "Request to speak clicked");
+        String currentText = requestToInterveneButton.getText().toString();
+        Boolean raiseIntervene = !currentText.equalsIgnoreCase(getResources().getString(R.string.action_cancel));
+        if (raiseIntervene){
+            //disable request to speak
+            requestToSpeakButton.setEnabled(false);
+        }else{
+            requestToSpeakButton.setEnabled(true);
+        }
+
+        if (isConnectionEstablished() && magicPeerConnectionWrapperList != null) {
+            if (!hasMCU) {
+                for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                    magicPeerConnectionWrapper.raiseIntervene(magicPeerConnectionWrapper.getSessionId(),raiseIntervene);
+                }
+            } else {
+                for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                    magicPeerConnectionWrapper.raiseIntervene(magicPeerConnectionWrapper.getSessionId(),raiseIntervene);
+                }
+            }
+        }
+    }
+
 
     private void toggleMedia(boolean enable, boolean video) {
         String message;
@@ -1644,6 +1700,9 @@ public class CallController extends BaseController {
                     case "pauseRequest":
                         pauseTimer(ncSignalingMessage);
                         break;
+                    case "approveIntervene":
+                        processInterveneApproved(ncSignalingMessage);
+                        break;
                     default:
                         break;
                 }
@@ -1668,6 +1727,22 @@ public class CallController extends BaseController {
             hideShowControls(ncSignalingMessage.getPayload().getState());
         }
 
+    }
+
+    private void processInterveneApproved(NCSignalingMessage ncSignalingMessage){
+        //check if this incoming request is meant for us
+        if (ncSignalingMessage.getTo().equalsIgnoreCase(ncSignalingMessage.getPayload().getSessionId())){
+            if (ncSignalingMessage.getPayload().getState() != null && ncSignalingMessage.getPayload().getState() && ncSignalingMessage.getPayload().getDuration() != null && ncSignalingMessage.getPayload().getDuration() > 0) {
+                //set allocated duration
+                allocatedSpeakTime = ncSignalingMessage.getPayload().getDuration();
+            } else {
+                //set allocated duration
+                allocatedSpeakTime = 0;
+            }
+            speakTimerStarted = false;
+
+            hideShowControls(ncSignalingMessage.getPayload().getState());
+        }
     }
 
     private void startTimer(Integer durationInMinutes){
@@ -1707,15 +1782,20 @@ public class CallController extends BaseController {
                  requestToSpeakButton.setText(R.string.kikao_request_to_speak);
                  requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
                      "#" + Integer.toHexString (getResources().getColor(R.color.colorPrimary)))));
+                 requestToInterveneButton.setText(R.string.kikao_request_to_intervene);
+                 requestToInterveneButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
+                     "#" + Integer.toHexString (getResources().getColor(R.color.colorPrimary)))));
                  hideShowControls(false);
                  if (isConnectionEstablished() && magicPeerConnectionWrapperList != null) {
                      if (!hasMCU) {
                          for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
                              magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId(),false);
+                             magicPeerConnectionWrapper.raiseIntervene(magicPeerConnectionWrapper.getSessionId(),false);
                          }
                      } else {
                          for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
                              magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId(),false);
+                             magicPeerConnectionWrapper.raiseIntervene(magicPeerConnectionWrapper.getSessionId(),false);
                          }
                      }
                  }
@@ -2361,16 +2441,33 @@ public class CallController extends BaseController {
                         getActivity().runOnUiThread(()->{
                             //todo do this to after confirmation of the request from the server. Should show the
                             // loading icon or error otherwise
-                            if (raiseHandEvent.getRaiseHand()) {
-                                requestToSpeakButton.setText(R.string.action_cancel);
-                                requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
-                                    "#" + Integer.toHexString (getResources().getColor(R.color.nc_darkRed)))));
-                            }else{
-                                requestToSpeakButton.setText(R.string.kikao_request_to_speak);
-                                requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
-                                    "#" + Integer.toHexString (getResources().getColor(R.color.colorPrimary)))));
-                                hideShowControls(false);
+                            switch (raiseHandEvent.getType()){
+                                case "raiseHand":
+                                    if (raiseHandEvent.getRaiseHand()) {
+                                        requestToSpeakButton.setText(R.string.action_cancel);
+                                        requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
+                                            "#" + Integer.toHexString (getResources().getColor(R.color.nc_darkRed)))));
+                                    }else{
+                                        requestToSpeakButton.setText(R.string.kikao_request_to_speak);
+                                        requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
+                                            "#" + Integer.toHexString (getResources().getColor(R.color.colorPrimary)))));
+                                        hideShowControls(false);
+                                    }
+                                break;
+                                case "raiseIntervene":
+                                    if (raiseHandEvent.getRaiseHand()) {
+                                        requestToInterveneButton.setText(R.string.action_cancel);
+                                        requestToInterveneButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
+                                            "#" + Integer.toHexString (getResources().getColor(R.color.nc_darkRed)))));
+                                    }else{
+                                        requestToInterveneButton.setText(R.string.kikao_request_to_intervene);
+                                        requestToInterveneButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
+                                            "#" + Integer.toHexString (getResources().getColor(R.color.colorPrimary)))));
+                                        hideShowControls(false);
+                                    }
+                                    break;
                             }
+
                         });
                         receivedSignalingMessages(signalingOverall.getOcs().getSignalings());
                     }

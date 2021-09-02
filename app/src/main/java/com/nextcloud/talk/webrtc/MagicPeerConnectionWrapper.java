@@ -183,8 +183,16 @@ public class MagicPeerConnectionWrapper {
         EventBus.getDefault().post(new RaiseHandEvent("raiseHand", sessionId,videoStreamType,raiseHand ));
     }
 
+    public void raiseIntervene(String sessionId, Boolean raiseIntervene){
+        EventBus.getDefault().post(new RaiseHandEvent("raiseIntervene", sessionId,videoStreamType,raiseIntervene ));
+    }
+
     public void startRequest(String sessionId, Boolean startRequest){
         EventBus.getDefault().post(new RaiseHandEvent("startRequest", sessionId,videoStreamType,startRequest ));
+    }
+
+    public void startIntervene(String sessionId, Boolean startIntervene){
+        EventBus.getDefault().post(new RaiseHandEvent("startIntervene", sessionId,videoStreamType,startIntervene ));
     }
 
 
