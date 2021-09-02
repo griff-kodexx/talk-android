@@ -62,6 +62,7 @@ import com.nextcloud.talk.events.ConfigurationChangeEvent;
 import com.nextcloud.talk.events.MediaStreamEvent;
 import com.nextcloud.talk.events.NetworkEvent;
 import com.nextcloud.talk.events.PeerConnectionEvent;
+import com.nextcloud.talk.events.RaiseHandEvent;
 import com.nextcloud.talk.events.SessionDescriptionSendEvent;
 import com.nextcloud.talk.events.WebSocketCommunicationEvent;
 import com.nextcloud.talk.models.ExternalSignalingServer;
@@ -907,6 +908,23 @@ public class CallController extends BaseController {
 
                 }
             });
+        }
+    }
+
+    @OnClick({R.id.requestToSpeakButton})
+    public void onRequestToSpeakClick(){
+        Log.d(TAG, "Request to speak clicked");
+
+        if (isConnectionEstablished() && magicPeerConnectionWrapperList != null) {
+            if (!hasMCU) {
+                for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                    magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId());
+                }
+            } else {
+                for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                        magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId());
+                }
+            }
         }
     }
 
@@ -2108,6 +2126,79 @@ public class CallController extends BaseController {
         } else {
             webSocketClient.sendCallMessage(ncMessageWrapper);
         }
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.BACKGROUND)
+    public void onMessageEvent(RaiseHandEvent raiseHandEvent) throws IOException {
+        Log.d(TAG,"raiseHand message event initiated");
+
+        NCMessageWrapper ncMessageWrapper = new NCMessageWrapper();
+        ncMessageWrapper.setEv("message");
+        ncMessageWrapper.setSessionId(callSession);
+        NCSignalingMessage ncSignalingMessage = new NCSignalingMessage();
+        ncSignalingMessage.setTo(raiseHandEvent.getPeerId());
+        ncSignalingMessage.setRoomType(raiseHandEvent.getVideoStreamType());
+        ncSignalingMessage.setType(raiseHandEvent.getType());
+        NCMessagePayload ncMessagePayload = new NCMessagePayload();
+        ncMessagePayload.setType(raiseHandEvent.getType());
+        ncMessagePayload.setState(true);
+        Long tsLong = System.currentTimeMillis()/1000;
+        String ts = tsLong.toString();
+        ncMessagePayload.setTimestamp(ts);
+
+        // Set all we need
+        ncSignalingMessage.setPayload(ncMessagePayload);
+        ncMessageWrapper.setSignalingMessage(ncSignalingMessage);
+
+
+        if (!hasExternalSignalingServer) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("{")
+                .append("\"fn\":\"")
+                .append(StringEscapeUtils.escapeJson(LoganSquare.serialize(ncMessageWrapper.getSignalingMessage()))).append("\"")
+                .append(",")
+                .append("\"sessionId\":")
+                .append("\"").append(StringEscapeUtils.escapeJson(callSession)).append("\"")
+                .append(",")
+                .append("\"ev\":\"message\"")
+                .append("}");
+
+            List<String> strings = new ArrayList<>();
+            String stringToSend = stringBuilder.toString();
+            strings.add(stringToSend);
+
+            int apiVersion = ApiUtils.getSignalingApiVersion(conversationUser, new int[] {ApiUtils.APIv3, 2, 1});
+
+            ncApi.sendSignalingMessages(credentials, ApiUtils.getUrlForSignaling(apiVersion, baseUrl, roomToken),
+                                        strings.toString())
+                .retry(3)
+                .subscribeOn(Schedulers.io())
+                .subscribe(new Observer<SignalingOverall>() {
+                    @Override
+                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                        // unused atm
+                    }
+
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull SignalingOverall signalingOverall) {
+                        receivedSignalingMessages(signalingOverall.getOcs().getSignalings());
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        Log.e(TAG, "", e);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        // unused atm
+                    }
+                });
+        } else {
+            webSocketClient.sendCallMessage(ncMessageWrapper);
+        }
+
     }
 
     @Override
