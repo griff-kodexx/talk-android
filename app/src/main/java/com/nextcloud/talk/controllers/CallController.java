@@ -1654,16 +1654,19 @@ public class CallController extends BaseController {
     }
 
     private void processRequestApproved(NCSignalingMessage ncSignalingMessage){
-        if (ncSignalingMessage.getPayload().getState() !=null && ncSignalingMessage.getPayload().getState() && ncSignalingMessage.getPayload().getDuration() !=null && ncSignalingMessage.getPayload().getDuration() > 0){
-            //set allocated duration
-            allocatedSpeakTime = ncSignalingMessage.getPayload().getDuration();
-        }else {
-            //set allocated duration
-            allocatedSpeakTime = 0;
-        }
-        speakTimerStarted = false;
+        //check if this incoming request is meant for us
+        if (ncSignalingMessage.getTo().equalsIgnoreCase(ncSignalingMessage.getPayload().getSessionId())){
+            if (ncSignalingMessage.getPayload().getState() != null && ncSignalingMessage.getPayload().getState() && ncSignalingMessage.getPayload().getDuration() != null && ncSignalingMessage.getPayload().getDuration() > 0) {
+                //set allocated duration
+                allocatedSpeakTime = ncSignalingMessage.getPayload().getDuration();
+            } else {
+                //set allocated duration
+                allocatedSpeakTime = 0;
+            }
+            speakTimerStarted = false;
 
-        hideShowControls(ncSignalingMessage.getPayload().getState());
+            hideShowControls(ncSignalingMessage.getPayload().getState());
+        }
 
     }
 
@@ -1721,16 +1724,18 @@ public class CallController extends BaseController {
     }
 
     private void pauseTimer(NCSignalingMessage ncSignalingMessage){
-        if (ncSignalingMessage.getPayload().getState() !=null && ncSignalingMessage.getPayload().getState()) {
-            if (countDownTimer!=null) {
-                countDownTimer.pause();
+        //check if this incoming request is meant for us
+        if (ncSignalingMessage.getTo().equalsIgnoreCase(ncSignalingMessage.getPayload().getSessionId())) {
+            if (ncSignalingMessage.getPayload().getState() != null && ncSignalingMessage.getPayload().getState()) {
+                if (countDownTimer != null) {
+                    countDownTimer.pause();
+                }
+            } else {
+                if (countDownTimer != null) {
+                    countDownTimer.resume();
+                }
             }
-        }else{
-            if (countDownTimer!=null) {
-                countDownTimer.resume();
-            }
-
-       }
+        }
     }
 
     private void hangup(boolean shutDownView) {

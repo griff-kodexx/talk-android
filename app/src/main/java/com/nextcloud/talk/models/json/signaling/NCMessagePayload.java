@@ -52,6 +52,9 @@ public class NCMessagePayload {
     @JsonField(name = "duration")
     Integer duration;
 
+    @JsonField(name = "sessionId")
+    String sessionId;
+
     public String getType() {
         return this.type;
     }
@@ -114,6 +117,14 @@ public class NCMessagePayload {
 
     public void setDuration(Integer duration) {
         this.duration = duration;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     public boolean equals(final Object o) {
