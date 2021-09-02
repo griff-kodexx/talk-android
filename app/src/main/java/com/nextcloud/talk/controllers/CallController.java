@@ -505,6 +505,15 @@ public class CallController extends BaseController {
             pipVideoView.setOnTouchListener(new SelfVideoTouchListener());
         }
 
+
+        //hide controls before permission to speak is granted
+        microphoneControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_mic_off_white_24px);
+        cameraControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_videocam_off_white_24px);
+        microphoneControlButton.setVisibility(View.GONE);
+        cameraControlButton.setVisibility(View.GONE);
+        cameraSwitchButton.setVisibility(View.GONE);
+        pipVideoView.setVisibility(View.GONE);
+
         gridView.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent me) {
                 int action = me.getActionMasked();
@@ -1224,6 +1233,17 @@ public class CallController extends BaseController {
     }
 
     private void joinRoomAndCall() {
+        //mute mic and camera
+        audioOn = false;
+        videoOn = false;
+
+        //disable audio
+        toggleMedia(audioOn, false);
+        //disable video
+        toggleMedia(videoOn, true);
+
+        //proceed with setting up call
+
         callSession = ApplicationWideCurrentRoomHolder.getInstance().getSession();
 
         int apiVersion = ApiUtils.getConversationApiVersion(conversationUser,  new int[] {ApiUtils.APIv4, 1});
