@@ -38,9 +38,9 @@
     <string name="weblogin_url" translatable="false"></string>
 
     <!-- Will not be shown if empty -->
-    <string name="nc_privacy_url" translatable="false">https://bungevirtual.com/</string>
-    <string name="nc_gpl3_url" translatable="false">https://bungevirtual.com/</string>
-    <string name="nc_source_code_url" translatable="false">https://bungevirtual.com/</string>
+    <string name="nc_privacy_url" translatable="false">bungevirtual.com</string>
+    <string name="nc_gpl3_url" translatable="false">bungevirtual.com</string>
+    <string name="nc_source_code_url" translatable="false">bungevirtual.com</string>
     <string name="nc_providers_url" translatable="false">https://nextcloud.com/providers</string>
 
     <!-- Package name from which to import accounts - if empty, won't ever be shown -->

@@ -37,7 +37,7 @@
     <string name="nc_server_testing_connection">Testing connection</string>
     <string name="nc_server_unsupported">Server does not have supported bungevirtual app installed</string>
 
-    <string name="nc_server_url">https://bungevirtual.com/</string>
+    <string name="nc_server_url">bungevirtual.com</string>
     <string name="nc_server_not_installed">Please finish your %1$s installation</string>
     <string name="nc_server_db_upgrade_needed">Please upgrade your %1$s database</string>
     <string name="nc_server_maintenance">Please bring your %1$s out of maintenance</string>
@@ -461,4 +461,5 @@
     <string name="kikao_request_to_intervene">Request To Intervene</string>
     <string name="kikao_count_down_placeholder">Count Down</string>
     <string name="kikao_time_left">Time left</string>
+    <string name="join_meeting">Join Meeting</string>
 </resources>

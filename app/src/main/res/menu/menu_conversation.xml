@@ -22,17 +22,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/conversation_voice_call"
-        android:icon="@drawable/ic_call_white_24dp"
-        android:orderInCategory="0"
-        android:title="@string/nc_conversation_menu_voice_call"
-        app:showAsAction="ifRoom" />
-
-    <item
         android:id="@+id/conversation_video_call"
-        android:icon="@drawable/ic_videocam_white_24px"
-        android:orderInCategory="1"
-        android:title="@string/nc_conversation_menu_video_call"
+        android:orderInCategory="0"
+        android:title="@string/join_meeting"
         app:showAsAction="ifRoom" />
 
     <item
