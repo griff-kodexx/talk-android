@@ -35,6 +35,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
 import android.media.MediaRecorder
@@ -48,8 +49,10 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.text.Editable
 import android.text.InputFilter
+import android.text.SpannableString
 import android.text.TextUtils
 import android.text.TextWatcher
+import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
@@ -86,13 +89,6 @@ import coil.load
 import com.bluelinelabs.conductor.RouterTransaction
 import com.bluelinelabs.conductor.changehandler.HorizontalChangeHandler
 import com.bluelinelabs.conductor.changehandler.VerticalChangeHandler
-import com.facebook.common.executors.UiThreadImmediateExecutorService
-import com.facebook.common.references.CloseableReference
-import com.facebook.datasource.DataSource
-import com.facebook.drawee.backends.pipeline.Fresco
-import com.facebook.imagepipeline.datasource.BaseBitmapDataSubscriber
-import com.facebook.imagepipeline.image.CloseableImage
-import com.google.android.flexbox.FlexboxLayout
 import com.bungevirtual.talk.R
 import com.bungevirtual.talk.activities.MagicCallActivity
 import com.bungevirtual.talk.activities.MainActivity
@@ -154,6 +150,13 @@ import com.bungevirtual.talk.utils.singletons.ApplicationWideCurrentRoomHolder
 import com.bungevirtual.talk.utils.text.Spans
 import com.bungevirtual.talk.webrtc.MagicWebSocketInstance
 import com.bungevirtual.talk.webrtc.WebSocketConnectionHelper
+import com.facebook.common.executors.UiThreadImmediateExecutorService
+import com.facebook.common.references.CloseableReference
+import com.facebook.datasource.DataSource
+import com.facebook.drawee.backends.pipeline.Fresco
+import com.facebook.imagepipeline.datasource.BaseBitmapDataSubscriber
+import com.facebook.imagepipeline.image.CloseableImage
+import com.google.android.flexbox.FlexboxLayout
 import com.otaliastudios.autocomplete.Autocomplete
 import com.stfalcon.chatkit.commons.ImageLoader
 import com.stfalcon.chatkit.commons.models.IMessage
@@ -2048,6 +2051,10 @@ class ChatController(args: Bundle) :
 
             loadAvatarForStatusBar()
         }
+
+        val s = SpannableString(conversationVideoMenuItem!!.getTitle())
+        s.setSpan(ForegroundColorSpan(resources!!.getColor(R.color.colorPrimary)), 0, s.length, 0)
+        conversationVideoMenuItem!!.setTitle(s)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
