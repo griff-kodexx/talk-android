@@ -462,4 +462,5 @@
     <string name="kikao_count_down_placeholder">Count Down</string>
     <string name="kikao_time_left">Time left</string>
     <string name="join_meeting">Join Meeting</string>
+    <string name="meeting_in_progress">Call in progress</string>
 </resources>

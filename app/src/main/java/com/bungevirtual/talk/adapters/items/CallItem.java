@@ -23,6 +23,7 @@ package com.bungevirtual.talk.adapters.items;
 import android.content.res.Resources;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -100,6 +101,8 @@ public class CallItem extends AbstractFlexibleItem<CallItem.RoomItemViewHolder> 
 
     @Override
     public void bindViewHolder(final FlexibleAdapter adapter, RoomItemViewHolder holder, int position, List payloads) {
+        Log.d("CallFlag for is: ", String.valueOf(conversation.isHasCall()));
+
         if (adapter.hasFilter()) {
             FlexibleUtils.highlightText(holder.roomDisplayName, conversation.getDisplayName(),
                     String.valueOf(adapter.getFilter(String.class)), NextcloudTalkApplication.Companion.getSharedApplication()
@@ -157,6 +160,12 @@ public class CallItem extends AbstractFlexibleItem<CallItem.RoomItemViewHolder> 
             default:
                 holder.avatarImageView.setVisibility(View.GONE);
 
+        }
+
+        if (conversation.isHasCall()){
+            //set icon for call in progess
+            holder.avatarImageView.setActualImageResource(R.drawable.ic_circular_group_in_call);
+            holder.roomLastPing.setText(R.string.meeting_in_progress);
         }
 
         holder.moreMenuButton.setOnClickListener(view -> EventBus.getDefault().post(new MoreMenuClickEvent(conversation)));

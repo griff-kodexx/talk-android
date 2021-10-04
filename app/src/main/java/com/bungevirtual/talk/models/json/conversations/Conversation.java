@@ -92,6 +92,9 @@ public class Conversation {
     @JsonField(name = "callFlag")
     public int callFlag;
 
+    @JsonField(name = "hasCall")
+    public boolean hasCall;
+
     @JsonField(name = "canLeaveConversation")
     public Boolean canLeaveConversation;
 
@@ -252,6 +255,10 @@ public class Conversation {
 
     public int getCallFlag() {
         return this.callFlag;
+    }
+
+    public boolean isHasCall() {
+        return hasCall;
     }
 
     public void setRoomId(String roomId) {

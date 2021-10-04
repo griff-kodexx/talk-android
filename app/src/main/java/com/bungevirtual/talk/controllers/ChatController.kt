@@ -2073,7 +2073,7 @@ class ChatController(args: Bundle) :
                 return true
             }
             R.id.conversation_video_call -> {
-                if (conversationVideoMenuItem?.icon?.alpha == FULLY_OPAQUE_INT) {
+                if (conversationVoiceCallMenuItem?.icon?.alpha == FULLY_OPAQUE_INT) {
                     startACall(false)
                     return true
                 }
