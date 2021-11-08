@@ -440,7 +440,7 @@ public class CallNotificationController extends BaseController {
                 }, UiThreadImmediateExecutorService.getInstance());
 
                 break;
-            case ROOM_GROUP_CALL:
+            case ROOM_STAFF_CALL:
                 avatarImageView.setImageResource(R.drawable.ic_circular_group);
             case ROOM_PUBLIC_CALL:
                 avatarImageView.setImageResource(R.drawable.ic_circular_group);

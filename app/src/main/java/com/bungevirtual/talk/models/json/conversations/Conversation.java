@@ -131,7 +131,7 @@ public class Conversation {
     }
 
     public boolean isLobbyViewApplicable(UserEntity conversationUser) {
-        return !canModerate(conversationUser) && (getType() == ConversationType.ROOM_GROUP_CALL || getType() == ConversationType.ROOM_PUBLIC_CALL);
+        return !canModerate(conversationUser) && (getType() == ConversationType.ROOM_STAFF_CALL || getType() == ConversationType.ROOM_PUBLIC_CALL);
     }
 
     public boolean isNameEditable(UserEntity conversationUser) {
@@ -553,9 +553,10 @@ public class Conversation {
     public enum ConversationType {
         DUMMY,
         ROOM_TYPE_ONE_TO_ONE_CALL,
-        ROOM_GROUP_CALL,
+        ROOM_STAFF_CALL,
         ROOM_PUBLIC_CALL,
-        ROOM_SYSTEM
+        ROOM_SYSTEM,
+        ROOM_PLENARY_CALL
     }
 
 }

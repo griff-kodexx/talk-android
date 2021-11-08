@@ -27,6 +27,7 @@ package com.bungevirtual.talk.ui.dialog;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,6 +35,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bluelinelabs.conductor.Controller;
+import com.bluelinelabs.conductor.RouterTransaction;
+import com.bluelinelabs.conductor.changehandler.VerticalChangeHandler;
+import com.bungevirtual.talk.controllers.ServerSelectionController;
+import com.bungevirtual.talk.controllers.SettingsController;
+import com.bungevirtual.talk.jobs.AccountRemovalWorker;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -48,6 +55,7 @@ import com.bungevirtual.talk.models.json.participants.Participant;
 import com.bungevirtual.talk.utils.ApiUtils;
 import com.bungevirtual.talk.utils.DisplayUtils;
 import com.bungevirtual.talk.utils.database.user.UserUtils;
+import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 
 import java.net.CookieManager;
 import java.util.ArrayList;
@@ -57,7 +65,10 @@ import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 import autodagger.AutoInjector;
 import eu.davidea.flexibleadapter.FlexibleAdapter;
 import eu.davidea.flexibleadapter.common.SmoothScrollLinearLayoutManager;
@@ -67,6 +78,11 @@ import io.reactivex.disposables.Disposable;
 @AutoInjector(NextcloudTalkApplication.class)
 public class ChooseAccountDialogFragment extends DialogFragment {
     private static final String TAG = ChooseAccountDialogFragment.class.getSimpleName();
+    private static final int ID_REMOVE_ACCOUNT_WARNING_DIALOG = 0;
+    private static final String ARG_PARAM1 = "remove_account_shortcut";
+    private Controller controller = null;
+    private Context context = null;
+
 
     @Inject
     UserUtils userUtils;
@@ -79,6 +95,10 @@ public class ChooseAccountDialogFragment extends DialogFragment {
 
     private FlexibleAdapter<AdvancedUserItem> adapter;
     private final List<AdvancedUserItem> userItems = new ArrayList<>();
+
+    private UserEntity currentUser;
+    private String credentials;
+
 
     @SuppressLint("InflateParams")
     @NonNull
@@ -94,6 +114,7 @@ public class ChooseAccountDialogFragment extends DialogFragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         NextcloudTalkApplication.Companion.getSharedApplication().getComponentApplication().inject(this);
+        getCurrentUser();
 
         // Defining user picture
         binding.currentAccount.userIcon.setTag("");
@@ -138,6 +159,11 @@ public class ChooseAccountDialogFragment extends DialogFragment {
                 dismiss();
                 ((MainActivity) getActivity()).openSettings();
             });
+            binding.logout.setOnClickListener(v -> {
+                dismiss();
+                showRemoveAccountWarning(savedInstanceState);
+            });
+
         }
 
         if (adapter == null) {
@@ -171,6 +197,49 @@ public class ChooseAccountDialogFragment extends DialogFragment {
         prepareViews();
     }
 
+
+    private void getCurrentUser() {
+        currentUser = userUtils.getCurrentUser();
+        credentials = ApiUtils.getCredentials(currentUser.getUsername(), currentUser.getToken());
+    }
+
+
+    private void showRemoveAccountWarning(Bundle savedInstanceState) {
+        if (getActivity() != null) {
+            new LovelyStandardDialog(getActivity(), LovelyStandardDialog.ButtonLayout.HORIZONTAL)
+                .setTopColorRes(R.color.nc_darkRed)
+                .setIcon(DisplayUtils.getTintedDrawable(getResources(),
+                                                        R.drawable.ic_delete_black_24dp, R.color.bg_default))
+                .setPositiveButtonColor(getActivity().getResources().getColor(R.color.nc_darkRed))
+                .setTitle(R.string.nc_settings_remove_account)
+                .setMessage(R.string.nc_settings_remove_confirmation)
+                .setPositiveButton(R.string.nc_settings_remove, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        removeCurrentAccount();
+                    }
+                })
+                .setNegativeButton(R.string.nc_cancel, null)
+                .setSavedInstanceState(savedInstanceState)
+                .show();
+        }
+    }
+
+    private void removeCurrentAccount() {
+        boolean otherUserExists = userUtils.scheduleUserForDeletionWithId(currentUser.getId());
+
+        OneTimeWorkRequest accountRemovalWork = new OneTimeWorkRequest.Builder(AccountRemovalWorker.class).build();
+        WorkManager.getInstance().enqueue(accountRemovalWork);
+
+        if (otherUserExists && getActivity() != null) {
+           //todo refresh if multiple accounts exist
+        } else if (!otherUserExists) {
+            controller.getRouter().setRoot(RouterTransaction.with(
+                new ServerSelectionController())
+                                    .pushChangeHandler(new VerticalChangeHandler())
+                                    .popChangeHandler(new VerticalChangeHandler()));
+        }
+    }
     private void prepareViews() {
         if (getActivity() != null) {
             LinearLayoutManager layoutManager = new SmoothScrollLinearLayoutManager(getActivity());
@@ -178,10 +247,6 @@ public class ChooseAccountDialogFragment extends DialogFragment {
         }
         binding.accountsList.setHasFixedSize(true);
         binding.accountsList.setAdapter(adapter);
-    }
-
-    public static ChooseAccountDialogFragment newInstance() {
-        return new ChooseAccountDialogFragment();
     }
 
     @Override
@@ -243,4 +308,16 @@ public class ChooseAccountDialogFragment extends DialogFragment {
             return true;
         }
     };
+
+
+    public static ChooseAccountDialogFragment newInstance(Boolean param1, Controller controller, Context context) {
+        Bundle args = new Bundle();
+        args.putBoolean(ARG_PARAM1, param1);
+        ChooseAccountDialogFragment frag = new ChooseAccountDialogFragment();
+        frag.controller = controller;
+        frag.context = context;
+        frag.setArguments(args);
+        return frag;
+    }
+
 }

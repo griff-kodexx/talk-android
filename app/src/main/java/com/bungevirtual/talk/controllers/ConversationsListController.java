@@ -588,7 +588,7 @@ public class ConversationsListController extends BaseController implements Searc
 
             activity.binding.switchAccountButton.setOnClickListener(v -> {
                 if (getResources() != null && getResources().getBoolean(R.bool.multiaccount_support)) {
-                    DialogFragment newFragment = ChooseAccountDialogFragment.newInstance();
+                    DialogFragment newFragment = ChooseAccountDialogFragment.newInstance(false, this, context);
                     newFragment.show(((MainActivity) getActivity()).getSupportFragmentManager(),
                                      "ChooseAccountDialogFragment");
                 } else {

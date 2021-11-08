@@ -145,7 +145,7 @@ public class CallItem extends AbstractFlexibleItem<CallItem.RoomItemViewHolder> 
                     holder.avatarImageView.setVisibility(View.GONE);
                 }
                 break;
-            case ROOM_GROUP_CALL:
+            case ROOM_STAFF_CALL:
                 holder.moreMenuButton.setContentDescription(String.format(resources.getString(R.string
                         .nc_description_more_menu_group), conversation.getDisplayName()));
                 holder.avatarImageView.setActualImageResource(R.drawable.ic_circular_group);

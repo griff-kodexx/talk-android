@@ -202,6 +202,8 @@ public class CallController extends BaseController {
     SimpleDraweeView cameraSwitchButton;
     @BindView(R.id.callStateTextView)
     TextView callStateTextView;
+    @BindView(R.id.callControlRaiseHand)
+    SimpleDraweeView callControlRaiseHand;
 
     @BindView(R.id.callInfosLinearLayout)
     LinearLayout callInfosLinearLayout;
@@ -234,6 +236,9 @@ public class CallController extends BaseController {
     @BindView(R.id.timeLeftButton)
     MaterialButton timeLeftButton;
 
+    @BindView(R.id.requestsLinearLayout)
+    LinearLayout requestsLinearLayout;
+
     @Inject
     NcApi ncApi;
     @Inject
@@ -261,6 +266,7 @@ public class CallController extends BaseController {
     private List<PeerConnection.IceServer> iceServers;
     private CameraEnumerator cameraEnumerator;
     private String roomToken;
+    private Conversation.ConversationType conversationType;
     private UserEntity conversationUser;
     private String conversationName;
     private String callSession;
@@ -311,6 +317,8 @@ public class CallController extends BaseController {
 
     private CountDownTimer countDownTimer;
 
+    private boolean handRaised = false;
+
     @Parcel
     public enum CallStatus {
         CONNECTING, CALLING_TIMEOUT, JOINED, IN_CONVERSATION, RECONNECTING, OFFLINE, LEAVING, PUBLISHER_FAILED
@@ -322,6 +330,7 @@ public class CallController extends BaseController {
 
         roomId = args.getString(BundleKeys.INSTANCE.getKEY_ROOM_ID(), "");
         roomToken = args.getString(BundleKeys.INSTANCE.getKEY_ROOM_TOKEN(), "");
+        conversationType = (Conversation.ConversationType) args.get(BundleKeys.INSTANCE.getKEY_CONVERSATION_TYPE());
         conversationUser = args.getParcelable(BundleKeys.INSTANCE.getKEY_USER_ENTITY());
         conversationPassword = args.getString(BundleKeys.INSTANCE.getKEY_CONVERSATION_PASSWORD(), "");
         conversationName = args.getString(BundleKeys.INSTANCE.getKEY_CONVERSATION_NAME(), "");
@@ -474,6 +483,7 @@ public class CallController extends BaseController {
                         for (Conversation conversation : roomsOverall.getOcs().getData()) {
                             if (roomId.equals(conversation.getRoomId())) {
                                 roomToken = conversation.getToken();
+                                conversationType = conversation.getType();
                                 break;
                             }
                         }
@@ -526,8 +536,15 @@ public class CallController extends BaseController {
             pipVideoView.setOnTouchListener(new SelfVideoTouchListener());
         }
 
-        //hide controls before permission to speak is granted
-        hideShowControls(false);
+        //todo show controls according to room type
+
+        Log.d(TAG, "The conversation type type is: "+conversationType);
+        if (conversationType.equals(Conversation.ConversationType.ROOM_STAFF_CALL)){
+            showStaffControls();
+        }else if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL)){
+            Log.d(TAG, "Heere 1");
+            showPlenaryControls();
+        }
 
         gridView.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent me) {
@@ -542,7 +559,23 @@ public class CallController extends BaseController {
         initGridAdapter();
     }
 
+    private void showStaffControls(){
+
+        //make raise hand visible
+        callControlRaiseHand.setVisibility(View.VISIBLE);
+    }
+
+    private void showPlenaryControls(){
+        //hide controls before permission to speak is granted
+        hideShowControls(false);
+
+    }
+
     private void hideShowControls(Boolean show){
+        Log.d(TAG, "Heere 2: valus is: "+show);
+        //make controls layout visible
+        requestsLinearLayout.setVisibility(View.VISIBLE);
+
         if (show){
             microphoneControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_mic_off_white_24px);
             cameraControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_videocam_off_white_24px);
@@ -563,6 +596,7 @@ public class CallController extends BaseController {
                 }
             }
 
+            //todo hide show based if conversationType is plenary or committee
             String allocatedSpeakTimeStr = String.format("%02d:%02d",
                                                          TimeUnit.MILLISECONDS.toMinutes(allocatedSpeakTime*60000),
                                                          TimeUnit.MILLISECONDS.toSeconds(allocatedSpeakTime*60000) -
@@ -1051,6 +1085,36 @@ public class CallController extends BaseController {
         }
     }
 
+    @OnClick({R.id.callControlRaiseHand})
+    public void onRaiseHandClick(){
+
+        handRaised = !handRaised;
+
+        if (handRaised){
+            Log.d(TAG, "Hand raised");
+
+            //show hand raised icon
+            callControlRaiseHand.getHierarchy().setPlaceholderImage(R.drawable.ic_hand);
+        }else{
+            Log.d(TAG, "Hand lowered");
+
+            //show hand lowered icon
+            callControlRaiseHand.getHierarchy().setPlaceholderImage(R.drawable.ic_hand_off);
+        }
+
+        if (isConnectionEstablished() && magicPeerConnectionWrapperList != null) {
+            if (!hasMCU) {
+                for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                    magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId(),handRaised);
+                }
+            } else {
+                for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
+                    magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId(),handRaised);
+                }
+            }
+        }
+    }
+
     @OnClick({R.id.requestToInterveneButton})
     public void onRequestToInterveneClick(){
         Log.d(TAG, "Request to speak clicked");
@@ -1401,7 +1465,11 @@ public class CallController extends BaseController {
 
     private void joinRoomAndCall() {
 
-        hideShowControls(false);
+        if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL)){
+            showPlenaryControls();
+        }else if (conversationType.equals(Conversation.ConversationType.ROOM_STAFF_CALL)){
+            showStaffControls();
+        }
 
         callSession = ApplicationWideCurrentRoomHolder.getInstance().getSession();
 
@@ -2437,16 +2505,7 @@ public class CallController extends BaseController {
                             // loading icon or error otherwise
                             switch (raiseHandEvent.getType()){
                                 case "raiseHand":
-                                    if (raiseHandEvent.getRaiseHand()) {
-                                        requestToSpeakButton.setText(R.string.action_cancel);
-                                        requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
-                                            "#" + Integer.toHexString (getResources().getColor(R.color.nc_darkRed)))));
-                                    }else{
-                                        requestToSpeakButton.setText(R.string.kikao_request_to_speak);
-                                        requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
-                                            "#" + Integer.toHexString (getResources().getColor(R.color.colorPrimary)))));
-                                        hideShowControls(false);
-                                    }
+                                   //do nothing since it's a simple raise hande request
                                 break;
                                 case "raiseIntervene":
                                     if (raiseHandEvent.getRaiseHand()) {

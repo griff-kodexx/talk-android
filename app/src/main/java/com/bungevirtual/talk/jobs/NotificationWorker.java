@@ -172,7 +172,7 @@ public class NotificationWorker extends Worker {
                                         (conversation.getObjectType()))) {
                             context.startActivity(intent);
                         } else {
-                            if (conversation.getType().equals(Conversation.ConversationType.ROOM_GROUP_CALL)) {
+                            if (conversation.getType().equals(Conversation.ConversationType.ROOM_STAFF_CALL)) {
                                 conversationType = "group";
                             } else {
                                 conversationType = "public";

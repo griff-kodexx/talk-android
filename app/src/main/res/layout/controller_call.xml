@@ -147,6 +147,8 @@
         android:layout_height="@dimen/call_controls_height"
         android:layout_alignBottom="@id/linearWrapperLayout"
         android:animateLayoutChanges="true"
+        android:visibility="gone"
+        tools:visibility="visible"
         android:background="@android:color/transparent"
         android:orientation="horizontal">
 
@@ -223,7 +225,23 @@
             app:placeholderImage="@drawable/ic_comment_white"
             app:roundAsCircle="true" />
 
-        <com.facebook.drawee.view.SimpleDraweeView
+
+            <com.facebook.drawee.view.SimpleDraweeView
+                android:id="@+id/callControlRaiseHand"
+                android:layout_width="60dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:elevation="10dp"
+                app:backgroundImage="@color/call_buttons_background"
+                app:placeholderImage="@drawable/ic_hand_off"
+                app:roundAsCircle="true" />
+
+
+
+            <com.facebook.drawee.view.SimpleDraweeView
             android:id="@+id/callControlEnableSpeaker"
             android:layout_width="60dp"
             android:layout_height="match_parent"

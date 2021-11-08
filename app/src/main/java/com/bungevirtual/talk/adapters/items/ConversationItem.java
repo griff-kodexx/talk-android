@@ -242,7 +242,7 @@ public class ConversationItem extends AbstractFlexibleItem<ConversationItem.Conv
                         holder.dialogAvatar.setVisibility(View.GONE);
                     }
                     break;
-                case ROOM_GROUP_CALL:
+                case ROOM_STAFF_CALL:
                         holder.dialogAvatar.setImageDrawable(ContextCompat.getDrawable(context,
                                                                                        R.drawable.ic_circular_group));
                     break;
@@ -253,6 +253,12 @@ public class ConversationItem extends AbstractFlexibleItem<ConversationItem.Conv
                 default:
                     holder.dialogAvatar.setVisibility(View.GONE);
             }
+        }
+
+        //change icon if call is in progess
+        if (conversation.hasCall){
+            holder.dialogAvatar.setImageDrawable(ContextCompat.getDrawable(context,
+                                                                           R.drawable.ic_call_in_progess));
         }
     }
 
