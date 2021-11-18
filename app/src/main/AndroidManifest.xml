@@ -20,7 +20,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.bungevirtual.talk">
+    package="com.nextcloud.talk">
 
     <uses-feature
         android:name="android.hardware.camera.any"
@@ -74,7 +74,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
-        android:name="com.bungevirtual.talk.application.NextcloudTalkApplication"
+        android:name="com.nextcloud.talk.application.NextcloudTalkApplication"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_config"
         android:icon="@mipmap/ic_launcher"
@@ -92,7 +92,7 @@
             android:value="10" />
 
         <activity
-            android:name="com.bungevirtual.talk.activities.MainActivity"
+            android:name="com.nextcloud.talk.activities.MainActivity"
             android:label="@string/nc_app_name"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
@@ -120,36 +120,36 @@
         </activity>
 
         <activity
-            android:name="com.bungevirtual.talk.activities.MagicCallActivity"
+            android:name="com.nextcloud.talk.activities.MagicCallActivity"
             android:configChanges="orientation|screenSize"
             android:launchMode="singleTask" />
 
         <activity
-            android:name="com.bungevirtual.talk.activities.FullScreenImageActivity"
+            android:name="com.nextcloud.talk.activities.FullScreenImageActivity"
             android:theme="@style/FullScreenImageTheme"
             android:configChanges="orientation|keyboardHidden|screenSize">
         </activity>
 
         <activity
-            android:name="com.bungevirtual.talk.activities.FullScreenMediaActivity"
+            android:name="com.nextcloud.talk.activities.FullScreenMediaActivity"
             android:theme="@style/FullScreenMediaTheme"
             android:configChanges="orientation|keyboardHidden|screenSize">
         </activity>
 
         <activity
-            android:name="com.bungevirtual.talk.activities.FullScreenTextViewerActivity"
+            android:name="com.nextcloud.talk.activities.FullScreenTextViewerActivity"
             android:theme="@style/FullScreenTextTheme"
             android:configChanges="orientation|keyboardHidden|screenSize">
         </activity>
 
-        <receiver android:name="com.bungevirtual.talk.receivers.PackageReplacedReceiver">
+        <receiver android:name="com.nextcloud.talk.receivers.PackageReplacedReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 
         <service
-            android:name="com.bungevirtual.talk.utils.SyncService"
+            android:name="com.nextcloud.talk.utils.SyncService"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
@@ -163,7 +163,7 @@
                 android:resource="@xml/contacts" />
         </service>
 
-        <service android:name="com.bungevirtual.talk.utils.AuthenticatorService">
+        <service android:name="com.nextcloud.talk.utils.AuthenticatorService">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>

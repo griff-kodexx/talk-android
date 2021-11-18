@@ -18,10 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.bungevirtual.talk.utils;
+package com.nextcloud.talk.utils;
 
 
-import com.bungevirtual.talk.interfaces.ClosedInterface;
+import com.nextcloud.talk.interfaces.ClosedInterface;
 
 public class ClosedInterfaceImpl implements ClosedInterface {
     @Override

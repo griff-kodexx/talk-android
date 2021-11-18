@@ -152,18 +152,27 @@
         android:background="@android:color/transparent"
         android:orientation="horizontal">
 
-             <com.google.android.material.button.MaterialButton
+             <br.com.simplepass.loadingbutton.customViews.CircularProgressButton
                  android:id="@+id/requestToSpeakButton"
-                 android:background="@drawable/button_bg"
+                 style="?android:textAppearanceSmall"
                  android:layout_width="wrap_content"
                  android:layout_height="wrap_content"
                  android:layout_gravity="start|center"
                  android:layout_marginStart="5dp"
+                 android:padding="5dp"
                  android:layout_marginEnd="5dp"
                  android:ellipsize="marquee"
+                 android:textStyle="bold"
                  android:text="@string/kikao_request_to_speak"
+                 android:background="@color/colorPrimary"
+                 android:textAllCaps="false"
                  android:textColor="@color/white"
-                 android:layout_weight="1" />
+                 app:finalCornerAngle="50dp"
+                 app:initialCornerAngle="0dp"
+                 app:spinning_bar_color="@android:color/white"
+                 app:spinning_bar_padding="5dp"
+                 android:layout_weight="1"
+                 app:spinning_bar_width="5dp"/>
 
              <com.google.android.material.button.MaterialButton
                  android:id="@+id/timeLeftButton"
@@ -186,20 +195,27 @@
                  android:layout_weight="0"
                  />
 
-
-             <com.google.android.material.button.MaterialButton
+             <br.com.simplepass.loadingbutton.customViews.CircularProgressButton
                  android:id="@+id/requestToInterveneButton"
-                 android:background="@drawable/button_bg"
+                 style="?android:textAppearanceSmall"
                  android:layout_width="wrap_content"
                  android:layout_height="wrap_content"
-                 android:layout_gravity="start|center"
+                 android:layout_gravity="end|center"
                  android:layout_marginStart="5dp"
+                 android:padding="5dp"
                  android:layout_marginEnd="5dp"
                  android:ellipsize="marquee"
+                 android:textStyle="bold"
                  android:text="@string/kikao_request_to_intervene"
+                 android:background="@color/colorPrimary"
+                 android:textAllCaps="false"
                  android:textColor="@color/white"
-                 android:layout_weight="1" />
-
+                 app:finalCornerAngle="50dp"
+                 app:initialCornerAngle="0dp"
+                 app:spinning_bar_color="@android:color/white"
+                 app:spinning_bar_padding="5dp"
+                 app:spinning_bar_width="5dp"
+                 android:layout_weight="1"/>
 
          </LinearLayout>
 

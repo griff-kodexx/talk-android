@@ -276,6 +276,8 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.8.8'
     implementation 'com.google.android.exoplayer:exoplayer:2.15.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
+
 
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.23'
@@ -285,6 +287,9 @@ dependencies {
     //implementation 'com.github.dhaval2404:imagepicker:1.8'
     implementation 'com.github.tobiaskaminsky:ImagePicker:1.8.0.2'
     implementation 'com.elyeproj.libraries:loaderviewlibrary:2.0.0'
+
+    // Circular Loading Button
+    implementation 'br.com.simplepass:loading-button-android:2.2.0'
 
     implementation 'org.osmdroid:osmdroid-android:6.1.11'
     implementation ('fr.dudie:nominatim-api:3.4', {
