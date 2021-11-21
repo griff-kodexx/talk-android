@@ -24,6 +24,8 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -55,6 +57,7 @@ import android.widget.TextView;
 import com.bluelinelabs.logansquare.LoganSquare;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.android.material.button.MaterialButton;
+import com.google.gson.JsonObject;
 import com.nextcloud.talk.R;
 import com.nextcloud.talk.activities.MagicCallActivity;
 import com.nextcloud.talk.adapters.ParticipantDisplayItem;
@@ -161,6 +164,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 import autodagger.AutoInjector;
 import br.com.simplepass.loadingbutton.customViews.CircularProgressButton;
 import butterknife.BindView;
@@ -338,10 +342,6 @@ public class CallController extends BaseController {
     private Integer allocatedSpeakTime = 0;
 
     private Long talkingSince = 0L;
-
-    private Integer requestedSpeakActionID = 0;
-
-    private Integer requestedInterveneActionID = 0;
 
     private Boolean speakTimerStarted = false;
 
@@ -549,6 +549,28 @@ public class CallController extends BaseController {
     private void initViews() {
         participantDisplayItems = new HashMap<>();
 
+        //save session
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(KikaoUtilitiesConstants.ACTIVE_SESSION_ID, roomToken);
+        editor.apply();
+
+        //show controls according to room type
+
+        Log.d(TAG, "The conversation type type is: "+conversationType);
+        if (conversationType.equals(Conversation.ConversationType.ROOM_STAFF_CALL)){
+            showStaffControls();
+        }else if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL)){
+            showPlenaryControlsDisabled();
+            updateStuff();
+        }else if (conversationType.equals(Conversation.ConversationType.ROOM_COMMITTEE)){
+            showCommitteeControlsDisabled();
+            updateStuff();
+        }else{
+            showStaffControls();
+        }
+
         if (isVoiceOnlyCall) {
             callControlEnableSpeaker.setVisibility(View.VISIBLE);
             cameraSwitchButton.setVisibility(View.GONE);
@@ -575,21 +597,6 @@ public class CallController extends BaseController {
             pipVideoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
 
             pipVideoView.setOnTouchListener(new SelfVideoTouchListener());
-        }
-
-        //todo show controls according to room type
-
-        Log.d(TAG, "The conversation type type is: "+conversationType);
-        if (conversationType.equals(Conversation.ConversationType.ROOM_STAFF_CALL)){
-            showStaffControls();
-        }else if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL)){
-            showPlenaryControlsDisabled();
-            updateStuff();
-        }else if (conversationType.equals(Conversation.ConversationType.ROOM_COMMITTEE)){
-            showCommitteeControlsDisabled();
-            updateStuff();
-        }else{
-            showStaffControls();
         }
 
         gridView.setOnTouchListener(new View.OnTouchListener() {
@@ -808,10 +815,11 @@ public class CallController extends BaseController {
 
     private void manageControls(String action){
         if (action.equals(KikaoUtilitiesConstants.ACTION_NONE)){
-            //user not approved. Hide controls and disable audion and video
-                hideShowControls(false);
+
         }else if(action.equals(KikaoUtilitiesConstants.ACTION_PAUSE_USER)){
-            pauseTimer(true);
+            if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL)) {
+                pauseTimer(true);
+            }
         }else if(action.equals(KikaoUtilitiesConstants.ACTION_RESUME_USER)){
             if (conversationType.equals(Conversation.ConversationType.ROOM_COMMITTEE)) {
                 showCommitteeControlsEnabled();
@@ -1155,12 +1163,17 @@ public class CallController extends BaseController {
                //make api request that speaker has started speaking
                 int apiVersion = ApiUtils.getCallApiVersion(conversationUser, new int[] {ApiUtils.APIv4, 1});
 
+
+
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+
                 JSONObject json = new JSONObject();
                 try {
-                    if (requestedSpeakActionID != 0) {
-                        json.put("id", requestedSpeakActionID);
+                    if (sharedPref.getInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_SPEAK_ID, 0) != 0) {
+                        json.put("id", sharedPref.getInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_SPEAK_ID, 0));
                     }else{
-                        json.put("id", requestedInterveneActionID);
+                        json.put("id", sharedPref.getInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_SPEAK_ID, 0));
                     }
                     json.put("token", roomToken);
                     json.put("userId", conversationUser.getId());
@@ -1264,7 +1277,6 @@ public class CallController extends BaseController {
     @OnClick({R.id.requestToSpeakButton})
     public void onRequestToSpeakClick(){
         Log.d(TAG, "Request to speak clicked");
-        requestToSpeakButton.startAnimation();
 
         if (requestToSpeakButton.getText().toString().equalsIgnoreCase(getResources().getString(R.string.action_cancel))){
             cancelRequestPermissionToSpeakNetworkCall();
@@ -1274,25 +1286,30 @@ public class CallController extends BaseController {
 
     }
 
+    private void requestToSpeakStartLoading(){
+        requestToSpeakButton.startAnimation();
+    }
+
+    private void requestToInterveneStartLoading(){
+        requestToInterveneButton.startAnimation();
+    }
 
     private void showRequestToSpeakButtonSuccess() {
-        requestToSpeakButton.stopAnimation();
+        requestToSpeakButton.revertAnimation();
     }
 
 
     private void showRequestToSpeakLoadingError() {
-        requestToSpeakButton.stopAnimation();
-        requestToSpeakButton.setText(getResources().getString(R.string.kikao_request_to_speak));
+        requestToSpeakButton.revertAnimation();
     }
 
     private void showRequestToInterveneButtonSuccess() {
-        requestToInterveneButton.stopAnimation();
+        requestToInterveneButton.revertAnimation();
     }
 
 
     private void showRequestToInterveneLoadingError() {
-        requestToInterveneButton.stopAnimation();
-        requestToInterveneButton.setText(getResources().getString(R.string.kikao_request_to_intervene));
+        requestToInterveneButton.revertAnimation();
     }
 
     @OnClick({R.id.callControlRaiseHand})
@@ -1327,8 +1344,7 @@ public class CallController extends BaseController {
 
     @OnClick({R.id.requestToInterveneButton})
     public void onRequestToInterveneClick(){
-        Log.d(TAG, "Request to speak clicked");
-        requestToSpeakButton.startAnimation();
+        Log.d(TAG, "Request to intervene clicked");
 
         if (requestToInterveneButton.getText().toString().equalsIgnoreCase(getResources().getString(R.string.action_cancel))){
             cancelRequestPermissionToInterveneNetworkCall();
@@ -1962,12 +1978,10 @@ public class CallController extends BaseController {
                         magicPeerConnectionWrapper.drainIceCandidates();
                         break;
                     case "approveRequest":
-                        processRequestApproved(ncSignalingMessage);
                         break;
                     case "pauseRequest":
                         break;
                     case "approveIntervene":
-                        processInterveneApproved(ncSignalingMessage);
                         break;
                     default:
                         break;
@@ -2172,14 +2186,26 @@ public class CallController extends BaseController {
 
     private void requestPermissionToSpeakNetworkCall() {
 
-        String json =
-            "{\"token\": \""+roomToken+"\", \"userId\" : \""+conversationUser.getUserId()+"\", " +
-            "\"activityType\" " +
-                ":" +
-                " " + 0 + "}";
+        JSONObject json = new JSONObject();
+        try {
+            json.put("token", roomToken);
+            json.put("userId", conversationUser.getUserId());
+            json.put("activityType", 0);
+            json.put("approved", false);
+            json.put("started", false);
+            json.put("paused", false);
+            json.put("canceled", false);
+            json.put("duration", 0);
+            json.put("talkingSince", 0);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        requestToSpeakStartLoading();
+
 
         Log.d(TAG,"Calling apiservice");
-        apiService.requestToSpeak(credentials, RequestBody.create(MediaType.parse("application/json"), json))
+        apiService.requestToSpeak(credentials, RequestBody.create(MediaType.parse("application/json"), json.toString()))
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Observer<RequestToActionGenericResult>() {
@@ -2191,6 +2217,9 @@ public class CallController extends BaseController {
                 @Override
                 public void onNext(@io.reactivex.annotations.NonNull RequestToActionGenericResult requestToActionGenericResult) {
                     showRequestToSpeakButtonSuccess();
+                    requestToSpeakButton.setText(getResources().getString(R.string.action_cancel));
+                    requestToSpeakButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
+                                                                                       R.color.kikao_danger));
                 }
 
                 @Override
@@ -2209,15 +2238,25 @@ public class CallController extends BaseController {
 
         JSONObject json = new JSONObject();
         try {
-            json.put("id", requestedSpeakActionID);
-            json.put("canceled", true);
+            json.put("token", roomToken);
+            json.put("userId", conversationUser.getUserId());
             json.put("activityType", 0);
+            json.put("approved", false);
+            json.put("started", false);
+            json.put("paused", false);
+            json.put("canceled", true);
+            json.put("duration", 0);
+            json.put("talkingSince", 0);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        requestToSpeakStartLoading();
+
         Log.d(TAG,"Calling apiservice");
-        apiService.cancelRequestToSpeak(credentials,requestedSpeakActionID, roomToken, RequestBody.create(MediaType.parse(
+        apiService.cancelRequestToSpeak(credentials,sharedPref.getInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_SPEAK_ID, 0), roomToken, RequestBody.create(MediaType.parse(
             "application/json"), json.toString()))
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -2230,6 +2269,10 @@ public class CallController extends BaseController {
                 @Override
                 public void onNext(@io.reactivex.annotations.NonNull RequestToActionGenericResult requestToActionGenericResult) {
                     showRequestToSpeakButtonSuccess();
+
+                    requestToSpeakButton.setText(getResources().getString(R.string.kikao_request_to_speak));
+                    requestToSpeakButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
+                                                                                       R.color.colorPrimary));
                 }
 
                 @Override
@@ -2248,15 +2291,27 @@ public class CallController extends BaseController {
 
         JSONObject json = new JSONObject();
         try {
-            json.put("id", requestedInterveneActionID);
-            json.put("canceled", true);
+            json.put("token", roomToken);
+            json.put("userId", conversationUser.getUserId());
             json.put("activityType", 1);
+            json.put("approved", false);
+            json.put("started", false);
+            json.put("paused", false);
+            json.put("canceled", true);
+            json.put("duration", 0);
+            json.put("talkingSince", 0);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
+        requestToInterveneStartLoading();
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
         Log.d(TAG,"Calling apiservice");
-        apiService.cancelRequestToIntervene(credentials,requestedInterveneActionID, roomToken, RequestBody.create(MediaType.parse(
+        apiService.cancelRequestToIntervene(credentials,sharedPref.getInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_INTERVENE_ID, 0),
+                                            roomToken,
+                                            RequestBody.create(MediaType.parse(
             "application/json"), json.toString()))
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -2268,6 +2323,9 @@ public class CallController extends BaseController {
 
                 @Override
                 public void onNext(@io.reactivex.annotations.NonNull RequestToActionGenericResult requestToActionGenericResult) {
+                    requestToInterveneButton.setText(getResources().getString(R.string.kikao_request_to_intervene));
+                    requestToInterveneButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
+                                                                                   R.color.colorPrimary));
                     showRequestToInterveneButtonSuccess();
                 }
 
@@ -2300,23 +2358,11 @@ public class CallController extends BaseController {
                 public void onNext(@io.reactivex.annotations.NonNull List<RequestToActionGenericResult> lists) {
                     RequestToActionGenericResult requestToActionGenericResult = new RequestToActionGenericResult();
 
-                    requestToSpeakButton.setText(getResources().getString(R.string.kikao_request_to_speak));
-                    requestToSpeakButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
-                                                                                   R.color.colorPrimary));
-
-                    requestToInterveneButton.setText(getResources().getString(R.string.kikao_request_to_intervene));
-                    requestToInterveneButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
-                                                                                   R.color.colorPrimary));
-
                     if (lists.size() > 0) {
 
                         for (RequestToActionGenericResult item : lists) {
                             if (item.getUserId().equalsIgnoreCase(conversationUser.getUserId())) {
                                 requestToActionGenericResult = item;
-
-                                requestToSpeakButton.setText(getResources().getString(R.string.action_cancel));
-                                requestToSpeakButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
-                                                                                               R.color.kikao_danger));
 
                                 allocatedSpeakTime = requestToActionGenericResult.getDuration() / 60; //to get it in minutes
                                 talkingSince = requestToActionGenericResult.getTalkingSince();
@@ -2324,7 +2370,12 @@ public class CallController extends BaseController {
                                 //perform action based on result
                                 if (requestToActionGenericResult.getActivityType() == KikaoUtilitiesConstants.ACTION_REQUEST_TO_SPEAK) {
                                     speakerIsApproved = requestToActionGenericResult.getApproved();
-                                    requestedSpeakActionID = requestToActionGenericResult.getId();
+
+                                    SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                                    SharedPreferences.Editor editor = sharedPref.edit();
+                                    editor.putInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_SPEAK_ID,
+                                                  requestToActionGenericResult.getId());
+                                    editor.apply();
 
                                     //permission granted
                                     if (requestToActionGenericResult.getApproved()) {
@@ -2345,12 +2396,26 @@ public class CallController extends BaseController {
                                                                                                            R.color.kikao_danger));
                                             manageControls(KikaoUtilitiesConstants.ACTION_RESUME_USER);
                                         }
+                                    }else if (requestToActionGenericResult.getCanceled()) {
+                                        requestToSpeakButton.setText(getResources().getString(R.string.kikao_request_to_speak));
+                                        requestToSpeakButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
+                                                                                                       R.color.colorPrimary));
+                                        manageControls(KikaoUtilitiesConstants.ACTION_CANCEL_USER);
+
                                     } else {
-                                        manageControls(KikaoUtilitiesConstants.ACTION_NONE);
+
+                                        requestToSpeakButton.setText(getResources().getString(R.string.action_cancel));
+                                        requestToSpeakButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
+                                                                                                       R.color.kikao_danger));
+                                        manageControls(KikaoUtilitiesConstants.ACTION_CANCEL_USER);
                                     }
                                 } else if (requestToActionGenericResult.getActivityType() == KikaoUtilitiesConstants.ACTION_REQUEST_TO_INTERVENE) {
                                     speakerIsApproved = requestToActionGenericResult.getApproved();
-                                    requestedInterveneActionID = requestToActionGenericResult.getId();
+                                    SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                                    SharedPreferences.Editor editor = sharedPref.edit();
+                                    editor.putInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_INTERVENE_ID,
+                                                  requestToActionGenericResult.getId());
+                                    editor.apply();
                                     //permission granted
                                     if (requestToActionGenericResult.getApproved()) {
                                         // minutes
@@ -2370,8 +2435,17 @@ public class CallController extends BaseController {
                                                                                                            R.color.kikao_danger));
                                             manageControls(KikaoUtilitiesConstants.ACTION_RESUME_USER);
                                         }
+                                    } else if (requestToActionGenericResult.getCanceled()) {
+                                        requestToInterveneButton.setText(getResources().getString(R.string.kikao_request_to_intervene));
+                                        requestToInterveneButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
+                                                                                                           R.color.colorPrimary));
+                                        manageControls(KikaoUtilitiesConstants.ACTION_CANCEL_USER);
+
                                     } else {
-                                        manageControls(KikaoUtilitiesConstants.ACTION_NONE);
+                                        requestToInterveneButton.setText(getResources().getString(R.string.action_cancel));
+                                        requestToInterveneButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
+                                                                                                           R.color.kikao_danger));
+                                        manageControls(KikaoUtilitiesConstants.ACTION_CANCEL_USER);
                                     }
                                 }
                             } else {
@@ -2410,14 +2484,25 @@ public class CallController extends BaseController {
     }
 
     private void requestPermissionToInterveneNetworkCall() {
-        String json =
-            "{\"token\": \""+roomToken+"\", \"userId\" : \""+conversationUser.getUserId()+"\", " +
-                "\"activityType\" " +
-                ":" +
-                " " + 1 + "}";
+        JSONObject json = new JSONObject();
+        try {
+            json.put("token", roomToken);
+            json.put("userId", conversationUser.getUserId());
+            json.put("activityType", 1);
+            json.put("approved", false);
+            json.put("started", false);
+            json.put("paused", false);
+            json.put("canceled", false);
+            json.put("duration", 0);
+            json.put("talkingSince", 0);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        requestToInterveneStartLoading();
 
         Log.d(TAG,"Calling apiservice");
-        apiService.requestToIntervene(credentials, RequestBody.create(MediaType.parse("application/json"), json))
+        apiService.requestToIntervene(credentials, RequestBody.create(MediaType.parse("application/json"), json.toString()))
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Observer<RequestToActionGenericResult>() {
@@ -2428,6 +2513,9 @@ public class CallController extends BaseController {
 
                 @Override
                 public void onNext(@io.reactivex.annotations.NonNull RequestToActionGenericResult requestToActionGenericResult) {
+                    requestToInterveneButton.setText(getResources().getString(R.string.action_cancel));
+                    requestToInterveneButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
+                                                                                   R.color.kikao_danger));
                     showRequestToInterveneButtonSuccess();
                 }
 

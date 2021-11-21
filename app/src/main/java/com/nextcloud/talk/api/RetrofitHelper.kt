@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.nextcloud.talk.BuildConfig
 import com.nextcloud.talk.R
+import okhttp3.Dispatcher
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -50,8 +51,14 @@ class RetrofitHelper(private val context: Context) {
         response
     }
 
-    private fun okHttpClient() =
-        OkHttpClient
+
+    private fun okHttpClient() : OkHttpClient {
+
+        val dispatcher = Dispatcher()
+        dispatcher.maxRequests = 100
+        dispatcher.maxRequestsPerHost =10
+
+        return  OkHttpClient
             .Builder()
             .addInterceptor(provideHttpLoggingInterceptor())
             .addInterceptor(provideHttpResponseInterceptor())
@@ -60,6 +67,7 @@ class RetrofitHelper(private val context: Context) {
             .writeTimeout(30, TimeUnit.SECONDS)
             .cache(null)
             .build()
+    }
 
 
 

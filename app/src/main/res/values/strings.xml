@@ -465,6 +465,6 @@
     <string name="back_to_meeting">Back To Meeting</string>
     <string name="meeting_in_progress">Call in progress</string>
     <string name="logout">Log out</string>
-    <string name="kikaoutils_api_base_url">http://192.168.0.32:3000/</string>
+    <string name="kikaoutils_api_base_url">https://bungevirtual.com/</string>
 
 </resources>
