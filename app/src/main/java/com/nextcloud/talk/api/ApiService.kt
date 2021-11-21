@@ -26,6 +26,11 @@ interface ApiService {
     @POST("apps/kikaoutilities/api/0.1/activities")
     fun requestToIntervene(@Header("Authorization") authorization: String?, @Body body: RequestBody?): Observable<RequestToActionGenericResult?>?
 
+    @PUT("apps/kikaoutilities/api/0.1/activities/{id}")
+    fun cancelRequestToIntervene(@Header("Authorization") authorization: String?,  @Path("id") id:
+    Int, @Query("token") token:String, @Body body: RequestBody?):
+        Observable<RequestToActionGenericResult?>?
+
     @GET("apps/kikaoutilities/api/0.1/activities")
     fun getSpeakerActionResponses(@Header("Authorization") authorization: String?,  @Query("token") token:
     String,):
