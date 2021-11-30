@@ -345,6 +345,8 @@ public class CallController extends BaseController {
 
     private Boolean speakTimerStarted = false;
 
+    private Boolean speakerhasUnmuted = false;
+
     private Boolean speakerIsApproved = false;
 
     private CountDownTimer countDownTimer;
@@ -661,6 +663,8 @@ public class CallController extends BaseController {
             }
         }
 
+        speakTimerStarted = false;
+        speakerhasUnmuted = false;
 
         microphoneControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_mic_off_white_24px);
         cameraControlButton.getHierarchy().setPlaceholderImage(R.drawable.ic_videocam_off_white_24px);
@@ -722,7 +726,7 @@ public class CallController extends BaseController {
         if (requestsLinearLayout!=null){
             requestsLinearLayout.setVisibility(View.VISIBLE);
             if (timeLeftButton!=null){
-                timeLeftButton.setVisibility(View.GONE);
+                timeLeftButton.setVisibility(View.VISIBLE);
             }
         }
 
@@ -745,6 +749,8 @@ public class CallController extends BaseController {
             }
         }
 
+        //show timer and wait to start
+        initTimer(allocatedSpeakTime);
 
     }
 
@@ -814,6 +820,8 @@ public class CallController extends BaseController {
     }
 
     private void manageControls(String action){
+        Log.d(TAG, "Speaker unmuted: "+speakerhasUnmuted);
+        Log.d(TAG, "Action called: "+action);
         if (action.equals(KikaoUtilitiesConstants.ACTION_NONE)){
 
         }else if(action.equals(KikaoUtilitiesConstants.ACTION_PAUSE_USER)){
@@ -821,17 +829,21 @@ public class CallController extends BaseController {
                 pauseTimer(true);
             }
         }else if(action.equals(KikaoUtilitiesConstants.ACTION_RESUME_USER)){
-            if (conversationType.equals(Conversation.ConversationType.ROOM_COMMITTEE)) {
-                showCommitteeControlsEnabled();
-            }else  if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL)) {
-                showPlenaryControlsEnabled();
+            //todo unpause timer logic or add another Constant -> ACTION_UNPAUSE_USER
+            //if microphone is already visible then no need
+            if (microphoneControlButton.getVisibility() != View.VISIBLE) {
+                if (conversationType.equals(Conversation.ConversationType.ROOM_COMMITTEE)) {
+                    showCommitteeControlsEnabled();
+                } else if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL)) {
+                    showPlenaryControlsEnabled();
+                }
             }
         }else if(action.equals(KikaoUtilitiesConstants.ACTION_CANCEL_USER)){
-            if (conversationType.equals(Conversation.ConversationType.ROOM_COMMITTEE)) {
-                showCommitteeControlsDisabled();
-            }else  if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL)) {
-                showPlenaryControlsDisabled();
-            }
+                if (conversationType.equals(Conversation.ConversationType.ROOM_COMMITTEE)) {
+                    showCommitteeControlsDisabled();
+                } else if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL)) {
+                    showPlenaryControlsDisabled();
+                }
         }
     }
 
@@ -1155,57 +1167,76 @@ public class CallController extends BaseController {
             }
         }
 
-        if (allocatedSpeakTime >0 && requestToSpeakButton.getText().toString().equalsIgnoreCase(getResources().getString(R.string.action_cancel))){
+        Log.d(TAG, "We are here....");
+        if (allocatedSpeakTime >0 && (requestToSpeakButton.getText().toString().equalsIgnoreCase(getResources().getString(R.string.action_cancel)) || requestToInterveneButton.getText().toString().equalsIgnoreCase(getResources().getString(R.string.action_cancel)))){
+            speakerhasUnmuted = true;
+            Log.d(TAG, "We are not here...."+speakTimerStarted);
             if (!speakTimerStarted){
-                //start timer
-                startTimer(allocatedSpeakTime);
+
+                //start timer if plenary
                 speakTimerStarted = true;
+                if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL)) {
+                    startTimer();
+                }
                //make api request that speaker has started speaking
-                int apiVersion = ApiUtils.getCallApiVersion(conversationUser, new int[] {ApiUtils.APIv4, 1});
 
 
+        JSONObject json = new JSONObject();
+        try {
+            json.put("token", roomToken);
+            json.put("userId", conversationUser.getUserId());
+            json.put("activityType", 0);
+            json.put("approved", true);
+            json.put("started", true);
+            json.put("paused", false);
+            json.put("canceled", false);
+            json.put("talkingSince", System.currentTimeMillis());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        requestToSpeakStartLoading();
 
 
-                JSONObject json = new JSONObject();
-                try {
-                    if (sharedPref.getInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_SPEAK_ID, 0) != 0) {
-                        json.put("id", sharedPref.getInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_SPEAK_ID, 0));
-                    }else{
-                        json.put("id", sharedPref.getInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_SPEAK_ID, 0));
-                    }
-                    json.put("token", roomToken);
-                    json.put("userId", conversationUser.getId());
-                    json.put("started", true);
-                    json.put("talkingSince", System.currentTimeMillis());
-                } catch (JSONException e) {
-                    e.printStackTrace();
+        Log.d(TAG,"Calling apiservice");
+
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        int activeSession = -99;
+
+                if (requestToSpeakButton.getText().toString().equalsIgnoreCase(getResources().getString(R.string.action_cancel))){
+                    activeSession = sharedPref.getInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_SPEAK_ID, 0);
+
+                }else if (requestToInterveneButton.getText().toString().equalsIgnoreCase(getResources().getString(R.string.action_cancel))){
+                    activeSession = sharedPref.getInt(KikaoUtilitiesConstants.ACTIVE_SESSION_REQUEST_TO_INTERVENE_ID,
+                                                      0);
                 }
 
-                ncApi.userUnMuted(credentials, ApiUtils.getUrlForKikaoUtilities( baseUrl, roomToken),
-                                         RequestBody.create(MediaType.parse("application/json"), json.toString()))
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Observer<RequestToActionGenericResult>() {
-                        @Override
-                        public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
-                            // unused atm
-                        }
+        apiService.userUnMuted(credentials, activeSession , roomToken, RequestBody.create(MediaType.parse("application/json"),
+                                                                             json.toString()))
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Observer<RequestToActionGenericResult>() {
+                @Override
+                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                    // unused atm
+                }
 
-                        @Override
-                        public void onNext(@io.reactivex.annotations.NonNull RequestToActionGenericResult requestToActionGenericResult) {
-                        }
+                @Override
+                public void onNext(@io.reactivex.annotations.NonNull RequestToActionGenericResult requestToActionGenericResult) {
 
-                        @Override
-                        public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        }
+                }
 
-                        @Override
-                        public void onComplete() {
-                            // unused atm
-                        }
-                    });
+                @Override
+                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                }
+
+                @Override
+                public void onComplete() {
+                    // unused atm
+                }
+            });
 
             }
 
@@ -1287,29 +1318,29 @@ public class CallController extends BaseController {
     }
 
     private void requestToSpeakStartLoading(){
-        requestToSpeakButton.startAnimation();
+
     }
 
     private void requestToInterveneStartLoading(){
-        requestToInterveneButton.startAnimation();
+
     }
 
     private void showRequestToSpeakButtonSuccess() {
-        requestToSpeakButton.revertAnimation();
+
     }
 
 
     private void showRequestToSpeakLoadingError() {
-        requestToSpeakButton.revertAnimation();
+
     }
 
     private void showRequestToInterveneButtonSuccess() {
-        requestToInterveneButton.revertAnimation();
+
     }
 
 
     private void showRequestToInterveneLoadingError() {
-        requestToInterveneButton.revertAnimation();
+
     }
 
     @OnClick({R.id.callControlRaiseHand})
@@ -2025,7 +2056,15 @@ public class CallController extends BaseController {
         }
     }
 
-    private void startTimer(Integer durationInMinutes){
+    private void initTimer(Integer durationInMinutes){
+        String durationInMinutesStr = String.format("%02d:%02d",
+                                                     TimeUnit.MILLISECONDS.toMinutes(durationInMinutes*60000),
+                                                     TimeUnit.MILLISECONDS.toSeconds(durationInMinutes*60000) -
+                                                         TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(durationInMinutes*60000))
+                                                    );
+        if (timeLeftButton!=null) {
+            timeLeftButton.setText(durationInMinutesStr);
+        }
         countDownTimer =  new CountDownTimer(durationInMinutes*60000, 1000) {
              public void onTick(long millisUntilFinished) {
                  String allocatedSpeakTimeStr = String.format("%02d:%02d",
@@ -2033,7 +2072,9 @@ public class CallController extends BaseController {
                                                               TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) -
                                                                   TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished))
                                                              );
-                timeLeftButton.setText(allocatedSpeakTimeStr);
+                 if (timeLeftButton!=null) {
+                     timeLeftButton.setText(allocatedSpeakTimeStr);
+                 }
 
                 if (millisUntilFinished/1000 < 30) {
                     timeLeftButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
@@ -2059,22 +2100,10 @@ public class CallController extends BaseController {
                  requestToInterveneButton.setText(R.string.kikao_request_to_intervene);
                  requestToInterveneButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
                      "#" + Integer.toHexString (getResources().getColor(R.color.colorPrimary)))));
-                 hideShowControls(false);
-                 if (isConnectionEstablished() && magicPeerConnectionWrapperList != null) {
-                     if (!hasMCU) {
-                         for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
-                             magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId(),false);
-                             magicPeerConnectionWrapper.raiseIntervene(magicPeerConnectionWrapper.getSessionId(),false);
-                         }
-                     } else {
-                         for (MagicPeerConnectionWrapper magicPeerConnectionWrapper : magicPeerConnectionWrapperList) {
-                             magicPeerConnectionWrapper.raiseHand(magicPeerConnectionWrapper.getSessionId(),false);
-                             magicPeerConnectionWrapper.raiseIntervene(magicPeerConnectionWrapper.getSessionId(),false);
-                         }
-                     }
-                 }
+                 showPlenaryControlsDisabled();
+                 //todo make API call that speaker time is finished
              }
-             }.start();
+             };
     }
 
     private void pauseTimer(Boolean pause){
@@ -2088,6 +2117,12 @@ public class CallController extends BaseController {
                     countDownTimer.resume();
                 }
             }
+    }
+
+    private void startTimer(){
+        if (countDownTimer != null) {
+            countDownTimer.start();
+        }
     }
 
     private void hangup(boolean shutDownView) {

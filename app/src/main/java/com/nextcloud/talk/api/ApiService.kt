@@ -37,6 +37,7 @@ interface ApiService {
         Observable<List<RequestToActionGenericResult>?>?
 
 
-    @POST("apps/kikaoutilities/api/0.1/activities")
-    fun userUnMuted(@Header("Authorization") authorization: String?, @Body body: RequestBody?): Observable<RequestToActionGenericResult?>?
+    @PUT("apps/kikaoutilities/api/0.1/activities/{id}")
+    fun userUnMuted(@Header("Authorization") authorization: String?, @Path("id") id:
+    Int, @Query("token") token:String, @Body body: RequestBody?): Observable<RequestToActionGenericResult?>?
 }

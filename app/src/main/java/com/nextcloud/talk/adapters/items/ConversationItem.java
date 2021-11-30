@@ -246,6 +246,10 @@ public class ConversationItem extends AbstractFlexibleItem<ConversationItem.Conv
                         holder.dialogAvatar.setImageDrawable(ContextCompat.getDrawable(context,
                                                                                        R.drawable.ic_circular_group));
                     break;
+                case ROOM_COMMITTEE:
+                    holder.dialogAvatar.setImageDrawable(ContextCompat.getDrawable(context,
+                                                                                   R.drawable.ic_circular_group));
+                    break;
                 case ROOM_PUBLIC_CALL:
                         holder.dialogAvatar.setImageDrawable(ContextCompat.getDrawable(context,
                                                                                        R.drawable.ic_circular_link));

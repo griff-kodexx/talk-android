@@ -710,6 +710,9 @@ class ConversationInfoController(args: Bundle) :
             Conversation.ConversationType.ROOM_STAFF_CALL -> binding.avatarImage.hierarchy.setPlaceholderImage(
                 R.drawable.ic_circular_group
             )
+            Conversation.ConversationType.ROOM_COMMITTEE -> binding.avatarImage.hierarchy.setPlaceholderImage(
+                R.drawable.ic_circular_group
+            )
             Conversation.ConversationType.ROOM_PUBLIC_CALL -> binding.avatarImage.hierarchy.setPlaceholderImage(
                 R.drawable.ic_circular_link
             )
