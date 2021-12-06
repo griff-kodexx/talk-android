@@ -30,7 +30,6 @@ import com.nextcloud.talk.R;
 import com.nextcloud.talk.application.NextcloudTalkApplication;
 import com.nextcloud.talk.events.MediaStreamEvent;
 import com.nextcloud.talk.events.PeerConnectionEvent;
-import com.nextcloud.talk.events.RaiseHandEvent;
 import com.nextcloud.talk.events.SessionDescriptionSendEvent;
 import com.nextcloud.talk.events.WebSocketCommunicationEvent;
 import com.nextcloud.talk.models.json.signaling.DataChannelMessage;
@@ -61,7 +60,7 @@ import autodagger.AutoInjector;
 
 @AutoInjector(NextcloudTalkApplication.class)
 public class MagicPeerConnectionWrapper {
-    private static String TAG = "MagicPeerConnectionWrapper";
+    private static final String TAG = "MagicPeerConWrapper";
 
     private List<IceCandidate> iceCandidates = new ArrayList<>();
     private PeerConnection peerConnection;
@@ -130,7 +129,6 @@ public class MagicPeerConnectionWrapper {
                     EventBus.getDefault().post(new WebSocketCommunicationEvent("peerReadyForRequestingOffer", hashMap));
                 } else if (!hasMCU && hasInitiated) {
                     peerConnection.createOffer(magicSdpObserver, sdpConstraints);
-
                 }
             }
         }
@@ -179,23 +177,6 @@ public class MagicPeerConnectionWrapper {
         }
     }
 
-    public void raiseHand(String sessionId, Boolean raiseHand){
-        EventBus.getDefault().post(new RaiseHandEvent("raiseHand", sessionId,videoStreamType,raiseHand ));
-    }
-
-    public void raiseIntervene(String sessionId, Boolean raiseIntervene){
-        EventBus.getDefault().post(new RaiseHandEvent("raiseIntervene", sessionId,videoStreamType,raiseIntervene ));
-    }
-
-    public void startRequest(String sessionId, Boolean startRequest){
-        EventBus.getDefault().post(new RaiseHandEvent("startRequest", sessionId,videoStreamType,startRequest ));
-    }
-
-    public void startIntervene(String sessionId, Boolean startIntervene){
-        EventBus.getDefault().post(new RaiseHandEvent("startIntervene", sessionId,videoStreamType,startIntervene ));
-    }
-
-
     public void sendNickChannelData(DataChannelMessageNick dataChannelMessage) {
         ByteBuffer buffer;
         if (magicDataChannel != null) {
@@ -203,7 +184,7 @@ public class MagicPeerConnectionWrapper {
                 buffer = ByteBuffer.wrap(LoganSquare.serialize(dataChannelMessage).getBytes());
                 magicDataChannel.send(new DataChannel.Buffer(buffer, false));
             } catch (IOException e) {
-                Log.d(TAG, "Failed to send channel data, attempting regular " + dataChannelMessage.toString());
+                Log.d(TAG, "Failed to send channel data, attempting regular " + dataChannelMessage);
             }
         }
     }
@@ -215,7 +196,7 @@ public class MagicPeerConnectionWrapper {
                 buffer = ByteBuffer.wrap(LoganSquare.serialize(dataChannelMessage).getBytes());
                 magicDataChannel.send(new DataChannel.Buffer(buffer, false));
             } catch (IOException e) {
-                Log.d(TAG, "Failed to send channel data, attempting regular " + dataChannelMessage.toString());
+                Log.d(TAG, "Failed to send channel data, attempting regular " + dataChannelMessage);
             }
         }
     }
