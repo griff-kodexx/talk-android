@@ -2483,6 +2483,8 @@ public class CallController extends BaseController {
                                         manageControls(KikaoUtilitiesConstants.ACTION_CANCEL_USER);
                                     }
                                 }
+
+                                break;
                             } else {
                                 requestToSpeakButton.setText(getResources().getString(R.string.kikao_request_to_speak));
                                 requestToSpeakButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
