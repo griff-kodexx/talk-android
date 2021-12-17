@@ -498,6 +498,6 @@
     <string name="kikaoutils_api_base_url">https://bungevirtual.com/</string>
     <string name="nc_in_meeting">In Meeting</string>
     <string name="nc_invited">Invited</string>
-    <string name="nc_meeting_ended_leaving">Meeting has ended. Leaving....</string>
+    <string name="nc_meeting_ended_leaving">Meeting has ended</string>
 
 </resources>
