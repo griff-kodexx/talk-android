@@ -51,6 +51,7 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
 import com.bluelinelabs.logansquare.LoganSquare;
+import com.google.android.material.snackbar.Snackbar;
 import com.nextcloud.talk.R;
 import com.nextcloud.talk.adapters.ParticipantDisplayItem;
 import com.nextcloud.talk.adapters.ParticipantsAdapter;
@@ -170,6 +171,11 @@ public class CallActivity extends CallBaseActivity {
 
     public static final String TAG = "CallActivity";
 
+    private static CallActivity mInstanceActivity;
+    public static CallActivity getmInstanceActivity() {
+        return mInstanceActivity;
+    }
+
     private static final String[] PERMISSIONS_CALL = {
         android.Manifest.permission.CAMERA,
         android.Manifest.permission.RECORD_AUDIO,
@@ -262,6 +268,7 @@ public class CallActivity extends CallBaseActivity {
     public void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
+        mInstanceActivity = this;
 
         NextcloudTalkApplication.Companion.getSharedApplication().getComponentApplication().inject(this);
 
@@ -1081,6 +1088,7 @@ public class CallActivity extends CallBaseActivity {
         }
         powerManagerUtils.updatePhoneState(PowerManagerUtils.PhoneState.IDLE);
         super.onDestroy();
+        mInstanceActivity = null;
     }
 
     private void fetchSignalingSettings() {
@@ -1520,6 +1528,17 @@ public class CallActivity extends CallBaseActivity {
         } else {
             Log.e(TAG, "unexpected RoomType while processing NCSignalingMessage");
         }
+    }
+
+    public void meetingEnded(){
+        binding.callStates.callStateTextView.setTextColor(getResources().getColor(R.color.nc_darkRed));
+        Snackbar.make(
+            binding.getRoot(),
+            R.string.nc_meeting_ended_leaving,
+            Snackbar.LENGTH_LONG
+                     ).setTextColor(getResources().getColor(R.color.nc_darkRed)).show();
+        setCallState(CallStatus.LEAVING);
+        hangup(true);
     }
 
     private void hangup(boolean shutDownView) {

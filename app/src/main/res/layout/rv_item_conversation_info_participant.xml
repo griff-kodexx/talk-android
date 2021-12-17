@@ -79,6 +79,17 @@
             android:textColor="?android:attr/textColorSecondary"
             tools:text="@string/nc_moderator" />
 
+        <androidx.emoji.widget.EmojiTextView
+            android:id="@+id/in_meeting"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:textAlignment="viewStart"
+            android:textColor="@color/colorPrimary"
+            tools:text="@string/nc_in_meeting" />
+
+
     </LinearLayout>
 
 </RelativeLayout>

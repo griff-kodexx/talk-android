@@ -496,5 +496,8 @@
     <string name="meeting_in_progress">Call in progress</string>
     <string name="logout">Log out</string>
     <string name="kikaoutils_api_base_url">https://bungevirtual.com/</string>
+    <string name="nc_in_meeting">In Meeting</string>
+    <string name="nc_invited">Invited</string>
+    <string name="nc_meeting_ended_leaving">Meeting has ended. Leaving....</string>
 
 </resources>

@@ -107,6 +107,13 @@ public class Conversation {
     @JsonField(name = "notificationCalls")
     public Integer notificationCalls;
 
+    @JsonField(name = "hasCall")
+    public boolean hasCall;
+
+    public boolean isHasCall() {
+        return hasCall;
+    }
+
     public boolean isPublic() {
         return (ConversationType.ROOM_PUBLIC_CALL.equals(type));
     }
@@ -573,7 +580,9 @@ public class Conversation {
         ROOM_TYPE_ONE_TO_ONE_CALL,
         ROOM_GROUP_CALL,
         ROOM_PUBLIC_CALL,
-        ROOM_SYSTEM
+        ROOM_SYSTEM,
+        ROOM_PLENARY_CALL,
+        ROOM_COMMITTEE_CALL,
     }
 
 }

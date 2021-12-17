@@ -210,6 +210,14 @@ public class UserItem extends AbstractFlexibleItem<UserItem.UserItemViewHolder> 
                 holder.videoCallIconView.setVisibility(View.GONE);
             }
 
+            if (inCallFlag > 0) {
+                holder.inMeetingStatus.setText(resources.getString(R.string.nc_in_meeting));
+                holder.inMeetingStatus.setTextColor(resources.getColor(R.color.colorPrimary));
+            }else{
+                holder.inMeetingStatus.setText(resources.getString(R.string.nc_invited));
+                holder.inMeetingStatus.setTextColor(resources.getColor(R.color.nc_darkYellow));
+            }
+
             if (holder.contactMentionId != null) {
                 String userType = "";
 
@@ -282,6 +290,8 @@ public class UserItem extends AbstractFlexibleItem<UserItem.UserItemViewHolder> 
         @Nullable
         @BindView(R.id.checkedImageView)
         ImageView checkedImageView;
+        @BindView(R.id.in_meeting)
+        public EmojiTextView inMeetingStatus;
 
         /**
          * Default constructor.

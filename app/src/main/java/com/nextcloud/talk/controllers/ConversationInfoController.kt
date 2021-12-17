@@ -230,7 +230,7 @@ class ConversationInfoController(args: Bundle) :
     }
 
     private fun webinaryRoomType(conversation: Conversation): Boolean {
-        return conversation.type == Conversation.ConversationType.ROOM_STAFF_CALL ||
+        return conversation.type == Conversation.ConversationType.ROOM_GROUP_CALL ||
             conversation.type == Conversation.ConversationType.ROOM_PUBLIC_CALL
     }
 
@@ -716,10 +716,10 @@ class ConversationInfoController(args: Bundle) :
                     .build()
                 binding.avatarImage.controller = draweeController
             }
-            Conversation.ConversationType.ROOM_STAFF_CALL -> binding.avatarImage.hierarchy.setPlaceholderImage(
+            Conversation.ConversationType.ROOM_GROUP_CALL -> binding.avatarImage.hierarchy.setPlaceholderImage(
                 R.drawable.ic_circular_group
             )
-            Conversation.ConversationType.ROOM_COMMITTEE -> binding.avatarImage.hierarchy.setPlaceholderImage(
+            Conversation.ConversationType.ROOM_COMMITTEE_CALL -> binding.avatarImage.hierarchy.setPlaceholderImage(
                 R.drawable.ic_circular_group
             )
             Conversation.ConversationType.ROOM_PUBLIC_CALL -> binding.avatarImage.hierarchy.setPlaceholderImage(
@@ -735,6 +735,13 @@ class ConversationInfoController(args: Bundle) :
 
             else -> {
             }
+        }
+
+        //overwrite the icon for calls in progress
+        if (conversation!!.hasCall) {
+            binding.avatarImage.hierarchy.setPlaceholderImage(
+                R.drawable.ic_call_in_progess
+            )
         }
     }
 

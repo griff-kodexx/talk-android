@@ -158,12 +158,12 @@
             android:layout_height="match_parent"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
-            android:visibility="gone"
-            tools:visibility="visible"
             android:elevation="10dp"
+            android:visibility="gone"
             app:backgroundImage="@color/call_buttons_background"
             app:placeholderImage="@drawable/ic_hand_off"
-            app:roundAsCircle="true" />
+            app:roundAsCircle="true"
+            tools:visibility="visible" />
 
         <com.facebook.drawee.view.SimpleDraweeView
             android:id="@+id/speakerButton"

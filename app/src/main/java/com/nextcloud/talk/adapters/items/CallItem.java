@@ -44,6 +44,7 @@ import org.greenrobot.eventbus.EventBus;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import androidx.core.content.ContextCompat;
 import androidx.emoji.widget.EmojiTextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -101,7 +102,7 @@ public class CallItem extends AbstractFlexibleItem<CallItem.RoomItemViewHolder> 
 
     @Override
     public void bindViewHolder(final FlexibleAdapter adapter, RoomItemViewHolder holder, int position, List payloads) {
-        Log.d("CallFlag for is: ", String.valueOf(conversation.isHasCall()));
+        Log.d("CallFlag for is: ", String.valueOf(conversation.callFlag));
 
         if (adapter.hasFilter()) {
             FlexibleUtils.highlightText(holder.roomDisplayName, conversation.getDisplayName(),
@@ -145,9 +146,19 @@ public class CallItem extends AbstractFlexibleItem<CallItem.RoomItemViewHolder> 
                     holder.avatarImageView.setVisibility(View.GONE);
                 }
                 break;
-            case ROOM_STAFF_CALL:
+            case ROOM_GROUP_CALL:
+                holder.moreMenuButton.setContentDescription(String.format(resources.getString(R.string
+                                                                                                  .nc_description_more_menu_group), conversation.getDisplayName()));
+                holder.avatarImageView.setActualImageResource(R.drawable.ic_circular_group);
+                holder.avatarImageView.setVisibility(View.VISIBLE);
+                break;
             case ROOM_PLENARY_CALL:
-            case ROOM_COMMITTEE:
+                holder.moreMenuButton.setContentDescription(String.format(resources.getString(R.string
+                                                                                                  .nc_description_more_menu_group), conversation.getDisplayName()));
+                holder.avatarImageView.setActualImageResource(R.drawable.ic_circular_group);
+                holder.avatarImageView.setVisibility(View.VISIBLE);
+                break;
+            case ROOM_COMMITTEE_CALL:
                 holder.moreMenuButton.setContentDescription(String.format(resources.getString(R.string
                         .nc_description_more_menu_group), conversation.getDisplayName()));
                 holder.avatarImageView.setActualImageResource(R.drawable.ic_circular_group);
@@ -164,10 +175,9 @@ public class CallItem extends AbstractFlexibleItem<CallItem.RoomItemViewHolder> 
 
         }
 
-        if (conversation.isHasCall()){
-            //set icon for call in progess
-            holder.avatarImageView.setActualImageResource(R.drawable.ic_circular_group_in_call);
-            holder.roomLastPing.setText(R.string.meeting_in_progress);
+        //overwrite the icon for calls in progress
+        if (conversation.hasCall){
+            holder.avatarImageView.setActualImageResource(R.drawable.ic_call_in_progess);
         }
 
         holder.moreMenuButton.setOnClickListener(view -> EventBus.getDefault().post(new MoreMenuClickEvent(conversation)));

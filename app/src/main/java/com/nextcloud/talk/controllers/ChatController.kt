@@ -100,6 +100,7 @@ import com.google.android.flexbox.FlexboxLayout
 import com.nextcloud.talk.BuildConfig
 import com.nextcloud.talk.R
 import com.nextcloud.talk.activities.CallActivity
+import com.nextcloud.talk.activities.CallActivity.CallStatus
 import com.nextcloud.talk.activities.MainActivity
 import com.nextcloud.talk.activities.TakePhotoActivity
 import com.nextcloud.talk.adapters.messages.IncomingLocationMessageViewHolder
@@ -303,6 +304,7 @@ class ChatController(args: Bundle) :
     }
 
     private fun getRoomInfo() {
+        Log.d(TAG, "getRoomInfo ...")
         val shouldRepeat = CapabilitiesUtil.hasSpreedFeatureCapability(conversationUser, "webinary-lobby")
         if (shouldRepeat) {
             checkingLobbyStatus = true
@@ -321,12 +323,19 @@ class ChatController(args: Bundle) :
 
                     @Suppress("Detekt.TooGenericExceptionCaught")
                     override fun onNext(roomOverall: RoomOverall) {
+
                         currentConversation = roomOverall.ocs.data
                         Log.d(
                             TAG,
                             "getRoomInfo. token: " + currentConversation?.getToken() +
                                 " sessionId: " + currentConversation?.sessionId
                         )
+                        //if no call in going on and meeting activity is started, then drop the user from the room
+                        if (!currentConversation!!.hasCall &&  CallActivity.getmInstanceActivity()!=null) {
+                            CallActivity.getmInstanceActivity().meetingEnded()
+                            leaveRoom()
+                        }
+
                         loadAvatarForStatusBar()
 
                         setTitle()
@@ -2212,7 +2221,9 @@ class ChatController(args: Bundle) :
                 return true
             }
             R.id.conversation_video_call -> {
-                if (conversationVideoMenuItem?.icon?.alpha == FULLY_OPAQUE_INT) {
+                Log.d(TAG, "join meeting tapped ")
+                if (true) {
+                    Log.d(TAG, "join meeting tapped true ")
                     startACall(false)
                     return true
                 }
