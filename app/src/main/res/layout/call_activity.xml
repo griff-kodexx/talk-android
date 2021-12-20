@@ -133,6 +133,96 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/requestsAndControlsLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/call_controls_height_double"
+        android:layout_alignBottom="@id/linearWrapperLayout"
+        android:animateLayoutChanges="true"
+        android:background="@android:color/transparent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/requestsLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/call_controls_height"
+        android:layout_alignBottom="@id/linearWrapperLayout"
+        android:animateLayoutChanges="true"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:background="@android:color/transparent"
+        android:orientation="horizontal">
+
+        <br.com.simplepass.loadingbutton.customViews.CircularProgressButton
+            android:id="@+id/requestToSpeakButton"
+            style="?android:textAppearanceSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center"
+            android:layout_marginStart="5dp"
+            android:padding="5dp"
+            android:gravity="center"
+            android:layout_marginEnd="5dp"
+            android:ellipsize="marquee"
+            android:textStyle="bold"
+            android:text="@string/kikao_request_to_speak"
+            android:background="@color/colorPrimary"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            app:finalCornerAngle="50dp"
+            app:initialCornerAngle="0dp"
+            app:spinning_bar_color="@android:color/white"
+            app:spinning_bar_padding="5dp"
+            android:layout_weight="1"
+            app:spinning_bar_width="5dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/timeLeftButton"
+            android:background="@drawable/button_bg_oval"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:ellipsize="marquee"
+            android:text="@string/kikao_time_left"
+            android:textColor="@color/white"
+            android:layout_weight="1"
+            android:visibility="gone"
+            tools:visibility="visible"/>
+
+        <View
+            android:layout_height="0dp"
+            android:layout_width="0dp"
+            android:layout_weight="0"
+            />
+
+        <br.com.simplepass.loadingbutton.customViews.CircularProgressButton
+            android:id="@+id/requestToInterveneButton"
+            style="?android:textAppearanceSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center"
+            android:layout_marginStart="5dp"
+            android:padding="5dp"
+            android:layout_marginEnd="5dp"
+            android:ellipsize="marquee"
+            android:textStyle="bold"
+            android:text="@string/kikao_request_to_intervene"
+            android:background="@color/colorPrimary"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            app:finalCornerAngle="50dp"
+            app:initialCornerAngle="0dp"
+            app:spinning_bar_color="@android:color/white"
+            app:spinning_bar_padding="5dp"
+            app:spinning_bar_width="5dp"
+            android:layout_weight="1"/>
+
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/callControls"
         android:layout_width="match_parent"
         android:layout_height="@dimen/call_controls_height"
@@ -206,6 +296,8 @@
             app:backgroundImage="@color/nc_darkRed"
             app:placeholderImage="@drawable/ic_call_end_white_24px"
             app:roundAsCircle="true" />
+    </LinearLayout>
+
     </LinearLayout>
 
     <LinearLayout

@@ -100,7 +100,6 @@ import com.google.android.flexbox.FlexboxLayout
 import com.nextcloud.talk.BuildConfig
 import com.nextcloud.talk.R
 import com.nextcloud.talk.activities.CallActivity
-import com.nextcloud.talk.activities.CallActivity.CallStatus
 import com.nextcloud.talk.activities.MainActivity
 import com.nextcloud.talk.activities.TakePhotoActivity
 import com.nextcloud.talk.adapters.messages.IncomingLocationMessageViewHolder
@@ -155,6 +154,7 @@ import com.nextcloud.talk.utils.NotificationUtils
 import com.nextcloud.talk.utils.UriUtils
 import com.nextcloud.talk.utils.bundle.BundleKeys
 import com.nextcloud.talk.utils.bundle.BundleKeys.KEY_ACTIVE_CONVERSATION
+import com.nextcloud.talk.utils.bundle.BundleKeys.KEY_CONVERSATION_TYPE
 import com.nextcloud.talk.utils.bundle.BundleKeys.KEY_ROOM_ID
 import com.nextcloud.talk.utils.bundle.BundleKeys.KEY_ROOM_TOKEN
 import com.nextcloud.talk.utils.bundle.BundleKeys.KEY_USER_ENTITY
@@ -223,6 +223,7 @@ class ChatController(args: Bundle) :
     val disposableList = ArrayList<Disposable>()
 
     var roomToken: String? = null
+    var conversationType: Conversation.ConversationType? = null
     val conversationUser: UserEntity?
     val roomPassword: String
     var credentials: String? = null
@@ -277,6 +278,7 @@ class ChatController(args: Bundle) :
         this.conversationUser = args.getParcelable(KEY_USER_ENTITY)
         this.roomId = args.getString(KEY_ROOM_ID, "")
         this.roomToken = args.getString(KEY_ROOM_TOKEN, "")
+        this.conversationType = args.get(KEY_CONVERSATION_TYPE) as Conversation.ConversationType?
         this.sharedText = args.getString(BundleKeys.KEY_SHARED_TEXT, "")
 
         Log.d(TAG, "   roomToken = $roomToken")
@@ -2285,6 +2287,7 @@ class ChatController(args: Bundle) :
             bundle.putString(BundleKeys.KEY_CONVERSATION_PASSWORD, roomPassword)
             bundle.putString(BundleKeys.KEY_MODIFIED_BASE_URL, conversationUser?.baseUrl)
             bundle.putString(BundleKeys.KEY_CONVERSATION_NAME, it.displayName)
+            bundle.putSerializable(BundleKeys.KEY_CONVERSATION_TYPE, it.type)
 
             if (isVoiceOnlyCall) {
                 bundle.putBoolean(BundleKeys.KEY_CALL_VOICE_ONLY, true)
@@ -2367,6 +2370,8 @@ class ChatController(args: Bundle) :
                                     bundle.putParcelable(KEY_USER_ENTITY, conversationUser)
                                     bundle.putString(KEY_ROOM_TOKEN, roomOverall.getOcs().getData().getToken())
                                     bundle.putString(KEY_ROOM_ID, roomOverall.getOcs().getData().getRoomId())
+                                    bundle.putSerializable(BundleKeys.KEY_CONVERSATION_TYPE, roomOverall.getOcs().getData()
+                                        .type)
 
                                     // FIXME once APIv2+ is used only, the createRoom already returns all the data
                                     ncApi!!.getRoom(
@@ -2654,6 +2659,8 @@ class ChatController(args: Bundle) :
                         bundle.putParcelable(KEY_USER_ENTITY, conversationUser)
                         bundle.putString(KEY_ROOM_TOKEN, roomOverall.ocs.data.token)
                         bundle.putString(KEY_ROOM_ID, roomOverall.ocs.data.roomId)
+                        bundle.putSerializable(BundleKeys.KEY_CONVERSATION_TYPE, roomOverall.getOcs().getData()
+                            .type)
 
                         if (conversationUser != null) {
                             bundle.putParcelable(

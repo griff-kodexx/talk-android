@@ -51,7 +51,7 @@ public class EnumRoomTypeConverter extends IntBasedTypeConverter<Conversation.Co
                 return 0;
             case ROOM_TYPE_ONE_TO_ONE_CALL:
                 return 1;
-            case ROOM_GROUP_CALL:
+            case ROOM_GROUP_CALL: //This is the STAFF_CALL
                 return 2;
             case ROOM_PUBLIC_CALL:
                 return 3;

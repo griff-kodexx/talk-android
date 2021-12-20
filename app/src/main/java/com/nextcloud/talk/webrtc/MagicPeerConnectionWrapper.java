@@ -30,6 +30,7 @@ import com.nextcloud.talk.R;
 import com.nextcloud.talk.application.NextcloudTalkApplication;
 import com.nextcloud.talk.events.MediaStreamEvent;
 import com.nextcloud.talk.events.PeerConnectionEvent;
+import com.nextcloud.talk.events.RaiseHandEvent;
 import com.nextcloud.talk.events.SessionDescriptionSendEvent;
 import com.nextcloud.talk.events.WebSocketCommunicationEvent;
 import com.nextcloud.talk.models.json.signaling.DataChannelMessage;
@@ -175,6 +176,10 @@ public class MagicPeerConnectionWrapper {
         } else {
             iceCandidates.add(iceCandidate);
         }
+    }
+
+    public void raiseHand(String sessionId, Boolean raiseHand){
+        EventBus.getDefault().post(new RaiseHandEvent("raiseHand", sessionId, videoStreamType, raiseHand ));
     }
 
     public void sendNickChannelData(DataChannelMessageNick dataChannelMessage) {
