@@ -56,6 +56,7 @@ import android.widget.RelativeLayout;
 
 import com.bluelinelabs.logansquare.LoganSquare;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
 import com.nextcloud.talk.R;
 import com.nextcloud.talk.adapters.ParticipantDisplayItem;
 import com.nextcloud.talk.adapters.ParticipantsAdapter;
@@ -80,6 +81,7 @@ import com.nextcloud.talk.models.json.conversations.RoomsOverall;
 import com.nextcloud.talk.models.json.generic.GenericOverall;
 import com.nextcloud.talk.models.json.participants.Participant;
 import com.nextcloud.talk.models.json.participants.ParticipantsOverall;
+import com.nextcloud.talk.models.json.polls.PollsResult;
 import com.nextcloud.talk.models.json.signaling.DataChannelMessage;
 import com.nextcloud.talk.models.json.signaling.DataChannelMessageNick;
 import com.nextcloud.talk.models.json.signaling.NCIceCandidate;
@@ -365,6 +367,24 @@ public class CallActivity extends CallBaseActivity {
 
         basicInitialization();
         participantDisplayItems = new HashMap<>();
+        if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL) || conversationType.equals(Conversation.ConversationType.ROOM_COMMITTEE_CALL)) {
+            //disable video and audio on joining
+            binding.microphoneButton.getHierarchy().setPlaceholderImage(R.drawable.ic_mic_off_white_24px);
+            binding.cameraButton.getHierarchy().setPlaceholderImage(R.drawable.ic_videocam_off_white_24px);
+            binding.microphoneButton.setVisibility(View.GONE);
+            binding.cameraButton.setVisibility(View.GONE);
+            binding.switchSelfVideoButton.setVisibility(View.GONE);
+            binding.selfVideoRenderer.setVisibility(View.GONE);
+
+            //mute mic and camera
+            audioOn = false;
+            videoOn = false;
+
+            //disable audio
+            toggleMedia(audioOn, false);
+            //disable video
+            toggleMedia(videoOn, true);
+        }
         initViews();
         initKikaoControls();
         if (!isConnectionEstablished()) {
@@ -2746,10 +2766,12 @@ public class CallActivity extends CallBaseActivity {
             showStaffControls();
         }else if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL)){
             showPlenaryControlsDisabled();
-            updateStuff();
+            updateKikaoPermissions();
+            updateKikaoVotes();
         }else if (conversationType.equals(Conversation.ConversationType.ROOM_COMMITTEE_CALL)){
             showCommitteeControlsDisabled();
-            updateStuff();
+            updateKikaoPermissions();
+            updateKikaoVotes();
         }else{
             showStaffControls();
         }
@@ -3033,7 +3055,7 @@ public class CallActivity extends CallBaseActivity {
             });
     }
 
-    private void updateStuffNetworkCall(){
+    private void updateKikaoPermissionsNetworkCall(){
 
         apiService.getSpeakerActionResponses(credentials,roomToken )
             .subscribeOn(Schedulers.io())
@@ -3050,7 +3072,8 @@ public class CallActivity extends CallBaseActivity {
 
                     if (lists.size() > 0) {
 
-                        for (RequestToActionGenericResult item : lists) {
+                        for (int i= 0; i < lists.size();i++) {
+                            RequestToActionGenericResult item = lists.get(i);
                             if (item.getUserId().equalsIgnoreCase(conversationUser.getUserId())) {
                                 requestToActionGenericResult = item;
 
@@ -3141,13 +3164,17 @@ public class CallActivity extends CallBaseActivity {
 
                                 break;
                             } else {
-                                binding.requestToSpeakButton.setText(getResources().getString(R.string.kikao_request_to_speak));
-                                binding.requestToSpeakButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
-                                                                                               R.color.colorPrimary));
-                                binding.requestToInterveneButton.setText(getResources().getString(R.string.kikao_request_to_intervene));
-                                binding.requestToInterveneButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
-                                                                                                   R.color.colorPrimary));
-                                manageControls(KikaoUtilitiesConstants.ACTION_CANCEL_USER);
+
+                                //cancel user only afer looping through all others
+                                if (i == lists.size()-1 ) {
+                                    binding.requestToSpeakButton.setText(getResources().getString(R.string.kikao_request_to_speak));
+                                    binding.requestToSpeakButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
+                                                                                                           R.color.colorPrimary));
+                                    binding.requestToInterveneButton.setText(getResources().getString(R.string.kikao_request_to_intervene));
+                                    binding.requestToInterveneButton.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
+                                                                                                               R.color.colorPrimary));
+                                    manageControls(KikaoUtilitiesConstants.ACTION_CANCEL_USER);
+                                }
                             }
                         }
                     }else{
@@ -3245,6 +3272,12 @@ public class CallActivity extends CallBaseActivity {
 
     private void showPlenaryControlsDisabled(){
         Log.d(TAG, "Show plenary controls");
+
+        //cancel timer
+        if(countDownTimer!=null){
+            countDownTimer.cancel();
+        }
+
         if (binding.requestsLinearLayout!=null){
             binding.requestsLinearLayout.setVisibility(View.VISIBLE);
             if (binding.timeLeftButton!=null){
@@ -3261,11 +3294,6 @@ public class CallActivity extends CallBaseActivity {
         binding.cameraButton.setVisibility(View.GONE);
         binding.switchSelfVideoButton.setVisibility(View.GONE);
         binding.selfVideoRenderer.setVisibility(View.GONE);
-
-        //cancel timer
-        if(countDownTimer!=null){
-            countDownTimer.cancel();
-        }
 
         //mute mic and camera
         audioOn = false;
@@ -3380,6 +3408,8 @@ public class CallActivity extends CallBaseActivity {
 
             }
             public void onFinish() {
+                binding.timeLeftButton.clearAnimation();
+                binding.timeLeftButton.clearFocus();
                 binding.timeLeftButton.setText("Done!");
                 binding.requestToSpeakButton.setText(R.string.kikao_request_to_speak);
                 binding.requestToSpeakButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(
@@ -3412,16 +3442,66 @@ public class CallActivity extends CallBaseActivity {
         }
     }
 
-    private void updateStuff(){
+    private void updateKikaoPermissions(){
         Log.d(TAG, "Calling kikao");
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                updateStuffNetworkCall();
+                updateKikaoPermissionsNetworkCall();
             }
         }, 0, 10000);//put here time 1000 milliseconds=1 second
 
+    }
+
+    private void updateKikaoVotes(){
+        Log.d(TAG, "Calling votes kikao");
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                updateVotesNetworkCall();
+            }
+        }, 0, 10000);//put here time 1000 milliseconds=1 second
+
+    }
+
+    private void updateVotesNetworkCall() {
+        Log.d(TAG, "User token user"+ new Gson().toJson(conversationUser).toString());
+        Log.d(TAG, "User token password"+ new Gson().toJson(conversationPassword).toString());
+        ncApi.fetchVotes(credentials, ApiUtils.getUrlForKikaoVotes(baseUrl, roomToken))
+            .retry(3)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Observer<PollsResult>() {
+                @Override
+                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                    mCompositeDisposable.add(d);
+                }
+
+                @Override
+                public void onNext(@io.reactivex.annotations.NonNull PollsResult pollsResult) {
+                   Log.d(TAG, "Votes fetched");
+                   //todo show request otp if voting is enabled
+                    if (pollsResult.votes.size() > 0){
+                        binding.requestOtpButton.setVisibility(View.VISIBLE);
+                    }else{
+                        binding.requestOtpButton.setVisibility(View.GONE);
+                    }
+
+                }
+
+                @Override
+                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                    // unused atm
+                    Log.d(TAG, "Votes error occurred");
+                }
+
+                @Override
+                public void onComplete() {
+                    // unused atm
+                }
+            });
     }
 
 }

@@ -373,6 +373,9 @@ class ConversationInfoController(args: Bundle) :
         var userItem: UserItem
         var participant: Participant
 
+        var invited = participants.size;
+        var inmeeting = 0;
+
         recyclerViewItems = ArrayList()
         var ownUserItem: UserItem? = null
 
@@ -392,7 +395,13 @@ class ConversationInfoController(args: Bundle) :
             } else {
                 recyclerViewItems.add(userItem)
             }
+
+            if (participant.getInCall() > 0){
+                inmeeting++
+            }
         }
+
+        binding.participantsListCategory.setTitle("Participants ( $invited invited, $inmeeting in meeting )")
 
         Collections.sort(recyclerViewItems, UserItemComparator())
 

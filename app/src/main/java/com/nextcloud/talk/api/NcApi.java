@@ -36,6 +36,7 @@ import com.nextcloud.talk.models.json.mention.MentionOverall;
 import com.nextcloud.talk.models.json.notifications.NotificationOverall;
 import com.nextcloud.talk.models.json.participants.AddParticipantOverall;
 import com.nextcloud.talk.models.json.participants.ParticipantsOverall;
+import com.nextcloud.talk.models.json.polls.PollsResult;
 import com.nextcloud.talk.models.json.push.PushRegistrationOverall;
 import com.nextcloud.talk.models.json.search.ContactsByNumberOverall;
 import com.nextcloud.talk.models.json.signaling.SignalingOverall;
@@ -429,4 +430,13 @@ public interface NcApi {
 
     @GET
     Observable<HoverCardOverall> hoverCard(@Header("Authorization") String authorization, @Url String url);
+
+    //votes
+
+    /*
+      Server URL is: baseUrl + /apps + /polls + /fetchVotes + /{callToken}
+   */
+    @GET
+    Observable<PollsResult> fetchVotes(@Header("Authorization") String authorization, @Url String url);
+
 }

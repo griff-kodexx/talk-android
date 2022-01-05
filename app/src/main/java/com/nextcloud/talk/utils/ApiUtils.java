@@ -411,4 +411,9 @@ public class ApiUtils {
 
     public static String getUrlForHoverCard(String baseUrl, String userId) { return baseUrl + ocsApiVersion +
         "/hovercard/v1/" + userId; }
+
+    /*Votes Utilities*/
+    public static String getUrlForKikaoVotes(String baseUrl, String token) {
+        return baseUrl + "/index.php/apps/polls/api/v1.0/fetchVotes/"+token;
+    }
 }

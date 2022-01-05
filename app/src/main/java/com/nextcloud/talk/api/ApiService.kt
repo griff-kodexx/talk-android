@@ -34,7 +34,7 @@ interface ApiService {
     @GET("apps/kikaoutilities/api/0.1/activities")
     fun getSpeakerActionResponses(@Header("Authorization") authorization: String?,  @Query("token") token:
     String,):
-        Observable<List<RequestToActionGenericResult>?>?
+        Observable<ArrayList<RequestToActionGenericResult>?>?
 
 
     @PUT("apps/kikaoutilities/api/0.1/activities/{id}")

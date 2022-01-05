@@ -490,6 +490,7 @@
     <string name="take_photo_error_deleting_picture">Error taking picture</string>
     <string name="take_photo_permission">Taking a photo is not possible without permissions</string>
     <string name="kikao_request_to_speak">Request To Speak</string>
+    <string name="kikao_request_otp">Request OTP</string>
     <string name="kikao_request_to_intervene">Request To Intervene</string>
     <string name="kikao_count_down_placeholder">Count Down</string>
     <string name="kikao_time_left">Time left</string>

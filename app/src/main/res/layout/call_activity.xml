@@ -142,6 +142,43 @@
         android:gravity="center"
         android:orientation="vertical">
 
+            <LinearLayout
+        android:id="@+id/requestOtpLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:background="@android:color/transparent"
+        android:orientation="horizontal">
+
+        <br.com.simplepass.loadingbutton.customViews.CircularProgressButton
+            android:id="@+id/requestOtpButton"
+            style="?android:textAppearanceSmall"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center"
+            android:layout_marginStart="5dp"
+            android:padding="5dp"
+            android:gravity="center"
+            android:layout_marginEnd="5dp"
+            android:ellipsize="marquee"
+            android:textStyle="bold"
+            android:text="@string/kikao_request_otp"
+            android:background="@color/kikao_warning"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:finalCornerAngle="50dp"
+            app:initialCornerAngle="0dp"
+            app:spinning_bar_color="@android:color/white"
+            app:spinning_bar_padding="5dp"
+            android:layout_weight="1"
+            app:spinning_bar_width="5dp"/>
+
+            </LinearLayout>
+
     <LinearLayout
         android:id="@+id/requestsLinearLayout"
         android:layout_width="match_parent"
@@ -234,20 +271,20 @@
 
         <com.facebook.drawee.view.SimpleDraweeView
             android:id="@+id/pictureInPictureButton"
-            android:layout_width="60dp"
+            android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:layout_marginEnd="10dp"
-            android:elevation="10dp"
+            android:layout_marginEnd="5dp"
+            android:elevation="5dp"
             app:backgroundImage="@color/call_buttons_background"
             app:placeholderImage="@drawable/ic_baseline_picture_in_picture_alt_24"
             app:roundAsCircle="true" />
 
         <com.facebook.drawee.view.SimpleDraweeView
             android:id="@+id/callControlRaiseHand"
-            android:layout_width="60dp"
+            android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
             android:elevation="10dp"
             android:visibility="gone"
             app:backgroundImage="@color/call_buttons_background"
@@ -257,20 +294,20 @@
 
         <com.facebook.drawee.view.SimpleDraweeView
             android:id="@+id/speakerButton"
-            android:layout_width="60dp"
+            android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
             app:backgroundImage="@color/call_buttons_background"
             app:placeholderImage="@drawable/ic_volume_mute_white_24dp"
             app:roundAsCircle="true" />
 
         <com.facebook.drawee.view.SimpleDraweeView
             android:id="@+id/cameraButton"
-            android:layout_width="60dp"
+            android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
             android:alpha="0.7"
             app:backgroundImage="@color/call_buttons_background"
             app:placeholderImage="@drawable/ic_videocam_white_24px"
@@ -278,10 +315,10 @@
 
         <com.facebook.drawee.view.SimpleDraweeView
             android:id="@+id/microphoneButton"
-            android:layout_width="60dp"
+            android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
             android:alpha="0.7"
             app:backgroundImage="@color/call_buttons_background"
             app:placeholderImage="@drawable/ic_mic_off_white_24px"
@@ -289,10 +326,10 @@
 
         <com.facebook.drawee.view.SimpleDraweeView
             android:id="@+id/hangupButton"
-            android:layout_width="60dp"
+            android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
             app:backgroundImage="@color/nc_darkRed"
             app:placeholderImage="@drawable/ic_call_end_white_24px"
             app:roundAsCircle="true" />

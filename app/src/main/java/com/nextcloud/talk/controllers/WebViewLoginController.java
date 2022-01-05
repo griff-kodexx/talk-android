@@ -30,6 +30,7 @@ import android.os.Bundle;
 import android.security.KeyChain;
 import android.security.KeyChainException;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -348,6 +349,8 @@ public class WebViewLoginController extends BaseController {
 
     private void parseAndLoginFromWebView(String dataString) {
         LoginData loginData = parseLoginData(assembledPrefix, dataString);
+
+        Log.d(TAG, "The token is"+loginData.getToken());
 
         if (loginData != null) {
             dispose();

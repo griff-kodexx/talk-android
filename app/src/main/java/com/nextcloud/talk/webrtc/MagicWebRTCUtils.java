@@ -54,7 +54,6 @@ public class MagicWebRTCUtils {
         add("MI 4LTE"); // Xiami Mi4
         add("Redmi Note 3"); // Redmi Note 3
         add("Redmi Note 4"); // Redmi Note 4
-        add("Redmi Note 10"); // Redmi Note 4
         add("SM-G900F"); // Samsung Galaxy S5
         add("g3_kt_kr"); // LG G3
         add("GT-I9195"); // Samsung Galaxy S4 Mini 4G LTE
@@ -89,8 +88,6 @@ public class MagicWebRTCUtils {
 
     private static Set<String> HARDWARE_ACCELERATION_VENDOR_BLACKLIST = new HashSet<String>() {{
         add("samsung");
-        add("xiaomi");
-        add("mi");
     }};
 
 
