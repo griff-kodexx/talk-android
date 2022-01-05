@@ -367,24 +367,6 @@ public class CallActivity extends CallBaseActivity {
 
         basicInitialization();
         participantDisplayItems = new HashMap<>();
-        if (conversationType.equals(Conversation.ConversationType.ROOM_PLENARY_CALL) || conversationType.equals(Conversation.ConversationType.ROOM_COMMITTEE_CALL)) {
-            //disable video and audio on joining
-            binding.microphoneButton.getHierarchy().setPlaceholderImage(R.drawable.ic_mic_off_white_24px);
-            binding.cameraButton.getHierarchy().setPlaceholderImage(R.drawable.ic_videocam_off_white_24px);
-            binding.microphoneButton.setVisibility(View.GONE);
-            binding.cameraButton.setVisibility(View.GONE);
-            binding.switchSelfVideoButton.setVisibility(View.GONE);
-            binding.selfVideoRenderer.setVisibility(View.GONE);
-
-            //mute mic and camera
-            audioOn = false;
-            videoOn = false;
-
-            //disable audio
-            toggleMedia(audioOn, false);
-            //disable video
-            toggleMedia(videoOn, true);
-        }
         initViews();
         initKikaoControls();
         if (!isConnectionEstablished()) {
