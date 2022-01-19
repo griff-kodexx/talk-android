@@ -422,4 +422,8 @@ public class ApiUtils {
     public static String getUrlForKikaoVotes(String baseUrl, String token) {
         return baseUrl + "/index.php/apps/polls/api/v1.0/fetchVotes/"+token;
     }
+
+    public static String getUrlForRequestOtp(String baseUrl) {
+        return baseUrl + "/index.php/apps/polls/api/v1.0/sendOtpSms";
+    }
 }

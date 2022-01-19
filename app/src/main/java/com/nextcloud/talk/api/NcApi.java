@@ -446,4 +446,8 @@ public interface NcApi {
     @GET
     Observable<PollsResult> fetchVotes(@Header("Authorization") String authorization, @Url String url);
 
+    @POST
+    Observable<Response<ResponseBody>> sendOtp(@Header("Authorization") String authorization, @Url String url,
+                                               @Body RequestBody body);
+
 }

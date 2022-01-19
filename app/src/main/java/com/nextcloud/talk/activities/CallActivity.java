@@ -174,7 +174,9 @@ import me.zhanghai.android.effortlesspermissions.OpenAppDetailsDialogFragment;
 import okhttp3.Cache;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import pub.devrel.easypermissions.AfterPermissionGranted;
+import retrofit2.Response;
 
 @AutoInjector(NextcloudTalkApplication.class)
 public class CallActivity extends CallBaseActivity {
@@ -373,6 +375,11 @@ public class CallActivity extends CallBaseActivity {
             initiateCall();
         }
         updateSelfVideoViewPosition();
+
+        binding.requestOtpButton.setOnClickListener(l-> {
+            //request OTP
+            requestOtpNetworkCall();
+        });
     }
 
     @Override
@@ -3466,10 +3473,65 @@ public class CallActivity extends CallBaseActivity {
                    Log.d(TAG, "Votes fetched");
                    //todo show request otp if voting is enabled
                     if (pollsResult.votes.size() > 0){
-                        binding.requestOtpButton.setVisibility(View.VISIBLE);
+                        binding.requestOtpLinearLayout.setVisibility(View.VISIBLE);
                     }else{
-                        binding.requestOtpButton.setVisibility(View.GONE);
+                        binding.requestOtpLinearLayout.setVisibility(View.GONE);
                     }
+
+                }
+
+                @Override
+                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                    // unused atm
+                    Log.d(TAG, "Votes error occurred");
+                }
+
+                @Override
+                public void onComplete() {
+                    // unused atm
+                }
+            });
+    }
+
+    private void requestOtpNetworkCall(){
+        Log.d(TAG, "User token user"+ new Gson().toJson(conversationUser).toString());
+        Log.d(TAG, "User token password"+ new Gson().toJson(conversationPassword).toString());
+
+        binding.requestOtpButton.startAnimation();
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("token", roomToken);
+            json.put("userId", conversationUser.getUserId());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ncApi.sendOtp(credentials, ApiUtils.getUrlForRequestOtp(baseUrl),  RequestBody.create(MediaType.parse("application/json"), json.toString()))
+            .retry(3)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Observer<Response<ResponseBody>>() {
+                @Override
+                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                    mCompositeDisposable.add(d);
+                }
+
+                @Override
+                public void onNext(@io.reactivex.annotations.NonNull Response<ResponseBody> result) {
+                    Log.d(TAG, "Votes fetched");
+                    //todo show enter otp and hide sent otp button
+
+                    final Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            //Write whatever to want to do after delay specified (1 sec)
+                            Log.d("Handler", "Running Handler");
+                            binding.requestOtpButton.revertAnimation();
+                        }
+                    }, 1000);
+
 
                 }
 

@@ -168,8 +168,6 @@
             android:background="@color/kikao_warning"
             android:textAllCaps="false"
             android:textColor="@color/white"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:finalCornerAngle="50dp"
             app:initialCornerAngle="0dp"
             app:spinning_bar_color="@android:color/white"
@@ -178,6 +176,55 @@
             app:spinning_bar_width="5dp"/>
 
             </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/enterOtpLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            android:background="@android:color/transparent"
+            android:orientation="horizontal">
+
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:hint="@string/kikao_enter_otp"
+                android:background="@color/white"
+                android:textColor="@color/white"
+                android:inputType="number"
+                android:maxLength="10"
+                android:gravity="center"
+                android:layout_weight="1"
+               />
+
+            <br.com.simplepass.loadingbutton.customViews.CircularProgressButton
+                android:id="@+id/verifyOtpButton"
+                style="?android:textAppearanceSmall"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center"
+                android:layout_marginStart="5dp"
+                android:padding="5dp"
+                android:gravity="center"
+                android:layout_marginEnd="5dp"
+                android:ellipsize="marquee"
+                android:textStyle="bold"
+                android:text="@string/kikao_verify_otp"
+                android:background="@color/kikao_warning"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                app:finalCornerAngle="50dp"
+                app:initialCornerAngle="0dp"
+                app:spinning_bar_color="@android:color/white"
+                app:spinning_bar_padding="5dp"
+                android:layout_weight="1"
+                app:spinning_bar_width="5dp"/>
+
+        </LinearLayout>
 
     <LinearLayout
         android:id="@+id/requestsLinearLayout"
